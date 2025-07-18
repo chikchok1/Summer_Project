@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>로그인 - 더미SNS</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body class="login-page">
+
+  <!-- 상단 툴바 -->
+  <nav class="toolbar">
+    <div class="toolbar-left">
+      <a href="index.html" class="logo">더미SNS</a>
+    </div>
+    <ul class="toolbar-right">
+      <li><a href="login.html">로그인</a></li>
+      <li><a href="profile.html">프로필</a></li>
+    </ul>
+  </nav>
+
+  <!-- 로그인 박스 -->
+  <div class="login-wrapper">
+    <div class="login-box">
+      <h2>Welcome Back 👋</h2>
+      <p class="sub-text">계정에 로그인하여 시작하세요</p>
+
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="아이디" required />
+        <input type="password" id="password" placeholder="비밀번호" required />
+        <button type="submit">로그인</button>
+      </form>
+
+      <p class="signup-text">
+        아직 회원이 아니신가요? <a href="register.html">회원가입</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- 모달 -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p id="modal-message"></p>
+      <button id="close-modal">확인</button>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
