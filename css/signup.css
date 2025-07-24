@@ -1,0 +1,185 @@
+/* 기본 스타일 */
+html {
+  overflow-y: scroll; /* 항상 세로 스크롤바 표시 */
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #f4f3f0;
+}
+
+.header_content {
+  background-color: #fff;
+  margin-bottom: 0; /* hr 위 간격 제거 */
+}
+
+.header_content .contents {
+  display: flex;
+  justify-content: space-between;
+  background-color: #fff;
+  margin-bottom: 0; /* hr 위 간격 제거 */
+  height: 100px;
+}
+
+.section {
+  max-width: 1350px; /* 섹션의 최대 너비 */
+  margin: 0 auto; /* 가운데 정렬 */
+  padding: 20px; /* 내부 여백 */
+}
+
+.contents span {
+  font-size: 20px;
+  text-decoration: none; /* 밑줄 제거 */
+  color: black; /* 링크 기본 색상 설정 */
+}
+
+.header_content .contents .memberInfo {
+  display: flex;
+  align-items: center;
+  margin-right: 300px; /* 오른쪽 벽과 간격 조정 */
+}
+
+.header_content .contents .title {
+  margin-left: 300px; /* 특정 부분에만 여백 추가 */
+  font-size: 40px;
+  display: inline-block; /* 여백이 적용되도록 설정 */
+  margin-top: 30px;
+}
+.header .title a {
+  text-decoration: none;
+  color: black; /* 링크 기본 색상 설정 */
+}
+
+.header_content .contents .memberInfo li a {
+  display: flex; /* 이미지와 텍스트를 Flexbox로 정렬 */
+  flex-direction: column; /* 수직으로 배치 */
+  align-items: center; /* 수평 중앙 정렬 */
+  justify-content: center; /* 수직 중앙 정렬 */
+  width: 80px; /* 링크(a)의 고정 너비 */
+  height: 100px; /* 링크(a)의 고정 높이 */
+  text-decoration: none; /* 링크 밑줄 제거 */
+}
+
+.header_content .contents .memberInfo li a img {
+  display: block;
+  width: 36px; /* 이미지 크기 */
+  height: 36px;
+  margin-bottom: 0px; /* 이미지와 텍스트 사이 간격 */
+}
+
+.header_content .contents .memberInfo li a span {
+  font-size: 14px; /* 텍스트 크기 */
+  text-align: center; /* 텍스트 정렬 */
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+.header_content hr {
+  border: 1px solid #eee;
+  width: 70%;
+}
+
+.nav .contents {
+  display: flex;
+  position: relative;
+  width: 980px;
+  margin: 0 auto;
+}
+
+.nav .nav-menu h2 a {
+  text-decoration: none;
+  font-size: 20px;
+  color: #333;
+}
+
+.nav-menu h2 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.nav .nav-menu {
+  display: flex; /* 리스트를 가로로 정렬 */
+  gap: 100px; /* 항목 사이 간격 설정 */
+  margin: 0; /* 외부 여백 제거 */
+  padding: 0; /* 내부 여백 제거 */
+}
+
+.nav hr {
+  border: 1px solid #060606;
+  width: 70%;
+}
+.container {
+  max-width: 500px;
+  margin: 50px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #272727;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #979797;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.form-group button {
+  width: 100%;
+  padding: 10px;
+  background-color: #353535;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.form-group button:hover {
+  background-color: #353535;
+}
+
+.links {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.links a {
+  color: #464646;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}

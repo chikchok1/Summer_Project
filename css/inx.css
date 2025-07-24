@@ -1,0 +1,337 @@
+/* 전체 레이아웃 */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  background-color: white;
+  color: #333;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll; /* ✅ 전체 스크롤은 body에만 */
+}
+
+/* 전체 레이아웃 컨테이너 */
+.container {
+  display: flex;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.auth-buttons button {
+  background-color: #3897f0;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* 사이드바 (좌측) */
+.sidebar {
+  width: 200px;
+  min-height: 100vh;
+  border-right: 1px solid black;
+  background-color: white;
+  box-sizing: border-box;
+  padding: 20px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.sidebar h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+/* 피드 */
+.feed {
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.stories {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.story {
+  width: 60px;
+  height: 60px;
+  background-color: #444;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 60px;
+  font-size: 12px;
+  color: white;
+}
+
+/* 게시글 컨테이너 */
+#post-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 게시글 카드 */
+.post {
+  background: linear-gradient(145deg, white, #f3f3f3);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.post:hover {
+  transform: translateY(-3px);
+}
+
+.post img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.post p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* ✅ messages 영역 내 버튼을 우상단으로 정렬 */
+.messages {
+  width: 250px;
+  min-height: 100vh;
+  background-color: white;
+  box-sizing: border-box;
+  padding: 20px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* 버튼 우측 정렬 */
+}
+
+.messages h3 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.messages ul {
+  list-style: none;
+  padding: 0;
+}
+
+.messages li {
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  color: #555;
+}
+
+/* 팝업 모달 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 28px;
+  border-radius: 12px;
+  width: 440px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ddd;
+}
+
+/* 닫기 버튼 */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-btn:hover {
+  color: #333;
+}
+
+/* 게시글 작성 폼 */
+#modal-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0;
+}
+
+#modal-post-form textarea {
+  width: 100%;
+  height: 100px;
+  background: #f9f9f9;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  resize: none; /* ✅ 크기 조절 비활성화 */
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+#modal-post-form textarea:focus {
+  outline: none;
+  border-color: #3897f0;
+  box-shadow: 0 0 0 2px rgba(56, 151, 240, 0.2);
+}
+
+#modal-post-form input[type="file"] {
+  background-color: #fff;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  color: #333;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+#modal-post-form button {
+  background-color: #3897f0;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+#modal-post-form button:hover {
+  background-color: #318ce7;
+}
+
+.comment-btn {
+  background-color: #eee;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.comment-popup {
+  position: fixed;
+  top: 50%;
+  right: 50px;
+  transform: translateY(-50%);
+  width: 340px;
+  height: 460px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.comment-popup.hidden {
+  display: none;
+}
+
+.comment-popup .popup-header {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+}
+
+.comment-popup .popup-comments {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.comment-popup .popup-footer {
+  display: flex;
+  border-top: 1px solid #ddd;
+  padding: 10px;
+}
+
+.comment-popup input {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 14px;
+  outline: none;
+}
+
+.comment-popup button {
+  margin-left: 10px;
+  background-color: #3897f0;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}

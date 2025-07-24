@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GDGOC Project</title>
+    <link rel="stylesheet" href="/Summer_Project/css/index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- 왼쪽 사이드바 -->
+      <aside class="sidebar">
+        <h2>오늘의 한 줄</h2>
+        <nav>
+          <ul>
+            <li><a href="/Summer_Project/html/index.html">홈</a></li>
+            <li>검색</li>
+            <li>게시글 작성하기</li>
+            <li><a href="/Summer_Project/html/profile.html">프로필</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- 피드 영역 -->
+      <div class="feed-wrapper">
+        <main class="feed">
+          <div class="feed-scroll">
+            <div id="post-container"></div>
+          </div>
+        </main>
+      </div>
+
+      <!-- 오른쪽 메시지 -->
+      <aside class="messages">
+        <ul class="memberInfo">
+          <li id="loginButton">
+            <a href="/Summer_Project/html/login.html">
+              <img
+                src="https://img.cgv.co.kr/R2014/images/common/ico/loginPassword.png"
+                alt="로그인"
+              />
+              <span>로그인</span>
+            </a>
+          </li>
+          <li id="logoutButton" style="display: none">
+            <a href="/Summer_Project/html/index.html">
+              <img
+                src="https://img.cgv.co.kr/R2014/images/common/ico/loginPassword.png"
+                alt="로그아웃"
+              />
+              <span>로그아웃</span>
+            </a>
+          </li>
+          <li id="signupButton">
+            <a href="/Summer_Project/html/signup.html">
+              <img
+                src="https://img.cgv.co.kr/R2014/images/common/ico/loginJoin.png"
+                alt="회원가입"
+              />
+              <span>회원가입</span>
+            </a>
+          </li>
+        </ul>
+        <div class="auth-buttons" id="auth-buttons"></div>
+      </aside>
+    </div>
+
+    <!-- 게시글 작성 팝업 -->
+    <div id="post-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <form id="modal-post-form">
+          <textarea
+            id="modal-post-content"
+            placeholder="무슨 생각을 하고 계신가요? 😊"
+          ></textarea>
+          <input type="file" id="modal-post-image" accept="image/*" />
+          <input
+            type="text"
+            id="modal-post-tags"
+            placeholder="#태그를 입력하세요 (쉼표로 구분)"
+          />
+          <button type="submit">업로드</button>
+        </form>
+      </div>
+    </div>
+
+    <template id="post-template">
+      <div class="post">
+        <div class="post-user"></div>
+        <div class="post-date"></div>
+        <img class="post-image" />
+        <p class="post-text"></p>
+        <div class="post-tags"></div>
+        <button class="action-btn like-btn"></button>
+        <button class="action-btn comment-btn">
+          💬 댓글 <span class="comment-badge">0</span>
+        </button>
+      </div>
+    </template>
+
+    <script src="/Summer_Project/js/script.js"></script>
+  </body>
+</html>

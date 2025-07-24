@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>프로필</title>
+    <link rel="stylesheet" href="/Summer_Project/css/profile.css" />
+  </head>
+  <body>
+    <!--툴바 -->
+    <nav class="toolbar">
+      <div class="toolbar-left">
+        <a href="/Summer_Project/html/index.html" class="logo">더미SNS</a>
+      </div>
+      <ul class="toolbar-right">
+        <li><a href="/Summer_Project/html/login.html">로그인</a></li>
+      </ul>
+    </nav>
+
+    <!-- 프로필 메인 -->
+    <div class="profile-container">
+      <div class="profile-header">
+        <div class="image-section">
+          <img id="profileImage" class="profile-image" alt="프로필 사진" />
+          <label class="small-button" for="imageInput">사진 변경</label>
+          <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+            style="display: none"
+          />
+        </div>
+        <div class="profile-info">
+          <h2 id="displayName">김재현</h2>
+          <p id="bio">인사말칸입니다.</p>
+          <button id="editProfileBtn">프로필 편집</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프로필 편집 모달 -->
+    <div class="modal" id="editModal">
+      <div class="modal-content">
+        <h3>프로필 편집</h3>
+        <input type="text" id="nameInput" placeholder="이름" />
+        <textarea id="bioInput" placeholder="소개글"></textarea>
+        <button id="saveBtn">저장</button>
+        <button id="closeEditModal">닫기</button>
+      </div>
+    </div>
+
+    <!-- 이미지 확대 모달 -->
+    <div class="modal" id="imageModal">
+      <div class="modal-content">
+        <img src="" alt="확대 이미지" id="modalImage" style="width: 100%" />
+        <button id="closeImageModal">닫기</button>
+      </div>
+    </div>
+
+    <!-- 전체 삭제 버튼 (마이페이지용) -->
+    <div style="text-align: center; margin: 30px">
+      <button
+        id="clearAllBtn"
+        style="
+          padding: 10px 20px;
+          background-color: red;
+          color: white;
+          border: none;
+          border-radius: 5px;
+        "
+      >
+        🗑 모든 게시글/댓글 삭제
+      </button>
+    </div>
+
+    <script>
+      const profileImage = document.getElementById("profileImage");
+      const imageInput = document.getElementById("imageInput");
+
+      // 초기 더미 이미지 랜덤 설정
+      function getRandomProfileUrl() {
+        const randomId = Math.floor(Math.random() * 70) + 1;
+        return `https://i.pravatar.cc/1?img=${randomId}`;
+      }
+      profileImage.src = getRandomProfileUrl();
+
+      // 이미지 업로드 시 미리보기로 설정
+      imageInput.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            profileImage.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // 🗑 게시글/댓글 전체 삭제 버튼 처리
+      document.getElementById("clearAllBtn").addEventListener("click", () => {
+        if (confirm("정말 모든 게시글과 댓글을 삭제하시겠습니까?")) {
+          localStorage.removeItem("posts");
+          alert("모든 게시글과 댓글이 삭제되었습니다.");
+          location.reload();
+        }
+      });
+    </script>
+  </body>
+</html>
