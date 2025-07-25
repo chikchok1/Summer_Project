@@ -30,17 +30,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.querySelector(".close-btn");
   const tagsInput = document.getElementById("modal-post-tags");
 
-  document.querySelectorAll(".sidebar li").forEach((li) => {
-    if (li.textContent === "게시글 작성하기") {
-      li.addEventListener("click", () => {
-        if (!isLoggedIn) {
-          alert("로그인이 필요합니다.");
-          return;
-        }
-        modal.classList.remove("hidden");
-      });
-    }
-  });
+  const openPostBtn = document.querySelector(".open-post-btn");
+  if (openPostBtn) {
+    openPostBtn.addEventListener("click", () => {
+      if (!isLoggedIn) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+      modal.classList.remove("hidden");
+    });
+  }
 
   closeBtn.addEventListener("click", () => {
     modal.classList.add("hidden");
@@ -87,13 +86,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const commentCount = commentBtn.querySelector(".comment-badge");
 
     commentBtn.onclick = () => {
-      // 이미 열려 있는 동일한 팝업이 있는지 확인
       const existingPopup = document.querySelector(
         `.comment-popup[data-index="${index}"]`
       );
 
       if (existingPopup) {
-        // 같은 게시글의 팝업이 열려있으면 토글로 닫기
         existingPopup.remove();
         return;
       }
@@ -201,11 +198,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderAllPosts();
       modalForm.reset();
       modal.classList.add("hidden");
+      document.getElementById("file-name").textContent = "선택된 파일 없음";
     };
 
     if (file) reader.readAsDataURL(file);
     else reader.onload();
   });
+
+  const fileInput = document.getElementById("modal-post-image");
+  if (fileInput) {
+    fileInput.addEventListener("change", () => {
+      const fileName = fileInput.files[0]?.name || "선택된 파일 없음";
+      document.getElementById("file-name").textContent = fileName;
+    });
+  }
 
   renderAllPosts();
 });

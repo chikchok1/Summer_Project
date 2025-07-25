@@ -5,18 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GDGOC Project</title>
     <link rel="stylesheet" href="/Summer_Project/css/index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="container">
       <!-- 왼쪽 사이드바 -->
       <aside class="sidebar">
-        <h2>오늘의 한 줄</h2>
         <nav>
-          <ul>
-            <li><a href="/Summer_Project/html/index.html">홈</a></li>
-            <li>검색</li>
-            <li>게시글 작성하기</li>
-            <li><a href="/Summer_Project/html/profile.html">프로필</a></li>
+          <h2>오늘의 한 줄</h2>
+          <ul class="sidebar-menu">
+            <li><a href="/Summer_Project/html/index.html">🏠 홈</a></li>
+            <li><a href="#">🔍 검색</a></li>
+            <li>
+              <button type="button" class="open-post-btn">
+                📝 게시글 작성
+              </button>
+            </li>
+            <li><a href="/Summer_Project/html/profile.html">👤 프로필</a></li>
           </ul>
         </nav>
       </aside>
@@ -74,7 +84,14 @@
             id="modal-post-content"
             placeholder="무슨 생각을 하고 계신가요? 😊"
           ></textarea>
-          <input type="file" id="modal-post-image" accept="image/*" />
+
+          <!-- 커스텀 파일 업로드 영역 -->
+          <div class="custom-file-upload">
+            <label for="modal-post-image">📷 사진 선택</label>
+            <span id="file-name">선택된 파일 없음</span>
+            <input type="file" id="modal-post-image" accept="image/*" />
+          </div>
+
           <input
             type="text"
             id="modal-post-tags"

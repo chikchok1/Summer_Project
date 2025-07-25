@@ -3,10 +3,11 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "Arial", sans-serif;
+  font-family: "Noto Sans KR", sans-serif;
   background-color: white;
   height: 100%;
 }
+
 a {
   text-decoration: none; /* 밑줄 제거 */
   color: black; /* 원하는 색상으로 변경 */
@@ -27,7 +28,7 @@ a {
   align-items: center;
   justify-content: center;
   width: 80px;
-  height: 100px;
+  height: 80px;
   text-decoration: none;
   color: black;
 }
@@ -59,23 +60,60 @@ a {
 .sidebar {
   position: fixed;
   top: 0;
-  left: 200px;
+  left: 150px;
   width: 260px;
   height: 100vh;
   padding: 16px;
+  padding-top: 50px;
   background-color: white;
   box-sizing: border-box;
   z-index: 1000;
+}
+.sidebar-menu {
+  list-style: none;
+  padding: 20px;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-menu li a,
+.sidebar-menu li button {
+  display: block;
+  width: 100%; /* ✅ 버튼도 전체 너비 채움 */
+  text-align: left;
+  background: none;
+  border: none;
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-sizing: border-box; /* ✅ padding 포함 정확한 박스 계산 */
+}
+
+/* 공통 hover 효과 */
+.sidebar-menu li a:hover,
+.sidebar-menu li button:hover {
+  background-color: #007bff;
+  color: white;
 }
 
 /* 오른쪽 메시지 고정 */
 .messages {
   position: fixed;
   top: 0;
-  right: 200px;
+  right: 130px;
   width: 260px;
   height: 100vh;
-  padding: 16px 16px 16px 50px;
+  padding: 40px 16px 16px 50px;
   background-color: white;
   box-sizing: border-box;
   z-index: 1000;
@@ -83,7 +121,7 @@ a {
 
 /* 사이드바 제목 */
 .sidebar h2 {
-  font-size: 20px;
+  font-size: 30px;
   margin: 0 0 16px 0;
   height: 40px;
   line-height: 40px;
@@ -192,15 +230,13 @@ a {
   font-size: 14px;
   font-style: italic;
 }
-
-/* 팝업 모달 */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -212,83 +248,142 @@ a {
 }
 
 .modal-content {
-  background-color: #fff;
-  padding: 28px;
-  border-radius: 12px;
-  width: 440px;
   position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  padding: 40px 28px 28px 28px; /* ✅ 위쪽 패딩 더 확보 */
+  border-radius: 16px;
+  width: 480px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
   border: 1px solid #ddd;
+  transition: transform 0.25s ease;
+}
+
+.modal-content:hover {
+  transform: translateY(-2px);
 }
 
 /* 닫기 버튼 */
 .close-btn {
   position: absolute;
-  top: 12px;
+  top: 16px;
   right: 16px;
   font-size: 24px;
-  color: #888;
+  color: #aaa;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
+  z-index: 10;
 }
+
 .close-btn:hover {
   color: #333;
 }
 
-/* 게시글 작성 폼 */
+/* 폼 전체 */
 #modal-post-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 8px 0;
+  padding-top: 10px;
 }
 
+/* textarea */
 #modal-post-form textarea {
   width: 100%;
   height: 100px;
-  background: #f9f9f9;
+  background: white;
   color: #333;
   border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 14px;
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.5;
   resize: none;
   box-sizing: border-box;
-  transition: border 0.2s;
+  transition: all 0.2s ease;
 }
 
 #modal-post-form textarea:focus {
   outline: none;
   border-color: #3897f0;
-  box-shadow: 0 0 0 2px rgba(56, 151, 240, 0.2);
+  box-shadow: 0 0 0 2px rgba(56, 151, 240, 0.15);
 }
 
+/* 파일 선택 input */
 #modal-post-form input[type="file"] {
   background-color: #fff;
   padding: 10px;
   font-size: 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #333;
   border: 1px solid #ccc;
   cursor: pointer;
 }
+.custom-file-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: border 0.2s ease;
+}
+
+.custom-file-upload label {
+  background-color: transparent; /* 배경 제거 */
+  color: black; /* 글자색 검정 */
+  padding: 8px 14px;
+  border: 1px solid rgb(242, 240, 240); /* 테두리만 검정 */
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+#file-name {
+  font-size: 13px;
+  color: black;
+}
+
+/* 태그 입력창 */
+#modal-post-tags {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: border 0.2s ease;
+}
+
+#modal-post-tags:focus {
+  outline: none;
+  border-color: #3897f0;
+  box-shadow: 0 0 0 2px rgba(56, 151, 240, 0.15);
+}
 
 #modal-post-form button {
-  background-color: #3897f0;
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
+  background-color: #333; /* 어두운 그레이 톤 배경 */
+  color: white; /* 흰색 글자 */
+  border: 1px solid #555; /* 어두운 회색 테두리 */
+  padding: 13px 0;
+  border-radius: 10px;
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  width: 100%;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05); /* 부드러운 그림자 */
 }
 
 #modal-post-form button:hover {
-  background-color: #318ce7;
+  background-color: #222; /* 호버 시 더 진한 회색 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 호버 그림자 강조 */
 }
 
 .post .action-btn {
