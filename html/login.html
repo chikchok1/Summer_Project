@@ -11,69 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <style>
-      /* 기본 폰트 설정 및 배경색 */
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #f0f2f5; /* 부드러운 회색 배경 */
-      }
-
-      /* 사용자 정의 모달 스타일 (Tailwind 기본 위에 추가) */
-      .custom-modal {
-        display: none; /* 기본적으로 숨김 */
-        position: fixed; /* 화면에 고정 */
-        z-index: 1000; /* 다른 요소 위에 표시 */
-        left: 0;
-        top: 0;
-        width: 100%; /* 전체 너비 */
-        height: 100%; /* 전체 높이 */
-        overflow: auto; /* 내용이 넘칠 경우 스크롤 허용 */
-        background-color: rgba(0, 0, 0, 0.4); /* 반투명 검정 배경 */
-        /* display: flex; <-- 이 줄을 제거하여 초기에는 모달이 숨겨지도록 합니다. */
-        justify-content: center;
-        align-items: center;
-      }
-
-      .custom-modal-content {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        width: 90%;
-        max-width: 350px;
-        text-align: center;
-      }
-
-      /* 사용자 제공 CSS (memberInfo 관련) */
-      .memberInfo {
-        display: flex;
-        flex-direction: row; /* 수평 정렬 */
-        justify-content: center; /* 가운데 정렬 */
-        gap: 10px; /* 버튼 간 간격 */
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      .memberInfo li a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 80px;
-        height: 80px;
-        text-decoration: none;
-        color: black;
-        font-size: 0.875rem; /* text-sm에 해당 */
-        font-weight: 500; /* medium */
-      }
-      .memberInfo li a img {
-        display: block;
-        width: 36px; /* 이미지 크기 */
-        height: 36px;
-        margin-bottom: 4px; /* 이미지와 텍스트 사이 간격 */
-      }
-    </style>
+    <link href="/Summer_Project/css/login.css" rel="stylesheet" />
   </head>
   <body class="flex flex-col min-h-screen">
     <!-- 상단 툴바 -->
@@ -163,62 +101,6 @@
         </button>
       </div>
     </div>
-
-    <script>
-      // 필요한 DOM 요소 가져오기
-      const loginForm = document.getElementById("loginForm");
-      const usernameInput = document.getElementById("username"); // 이전에 userid였을 수 있으나, login.html form에 따라 변경
-      const passwordInput = document.getElementById("password");
-      const modal = document.getElementById("modal");
-      const modalMessage = document.getElementById("modal-message");
-      const closeModalButton = document.getElementById("close-modal");
-
-      // 모달 표시 함수
-      function showModal(message) {
-        modalMessage.textContent = message;
-        modal.style.display = "flex"; // flex로 설정하여 중앙 정렬
-      }
-
-      // 모달 숨기기 함수
-      function hideModal() {
-        modal.style.display = "none";
-      }
-
-      // 모달 닫기 버튼 이벤트 리스너
-      closeModalButton.addEventListener("click", hideModal);
-
-      // 로그인 폼 제출 이벤트 리스너
-      loginForm.addEventListener("submit", (e) => {
-        e.preventDefault(); // 폼 기본 제출 동작 방지
-
-        const inputUserid = usernameInput.value.trim(); // login.html에서 아이디 입력 필드가 username id를 가짐
-        const inputPassword = passwordInput.value.trim();
-
-        // 로컬 스토리지에서 등록된 모든 사용자 데이터 가져오기
-        const users = JSON.parse(localStorage.getItem("users")) || [];
-
-        // 입력된 아이디와 비밀번호로 사용자 찾기
-        const foundUser = users.find(
-          (user) =>
-            user.userid === inputUserid && user.password === inputPassword
-        );
-
-        if (foundUser) {
-          // 로그인 성공: 사용자 아이디 대신 사용자 이름을 loggedInUser로 localStorage에 저장
-          // signup.html에서 username 필드에 사용자 이름이 저장된다고 가정합니다.
-          localStorage.setItem("loggedInUser", foundUser.username); // <--- 이 부분을 userid에서 username으로 변경했습니다.
-          showModal("로그인 성공!");
-          // 모달이 닫힌 후 메인 페이지(test.html)로 이동하도록 이벤트 리스너 추가
-          closeModalButton.removeEventListener("click", hideModal); // 기존 리스너 제거
-          closeModalButton.addEventListener("click", () => {
-            hideModal();
-            window.location.href = "/Summer_Project/html/index.html";
-          });
-        } else {
-          // 로그인 실패: 모달로 메시지 표시
-          showModal("아이디 또는 비밀번호가 올바르지 않습니다.");
-        }
-      });
-    </script>
+    <script src="/Summer_Project/js/login.js"></script>
   </body>
 </html>

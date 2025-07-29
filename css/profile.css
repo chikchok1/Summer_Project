@@ -1,165 +1,526 @@
+/* 인라인 스타일로 기본 레이아웃과 버튼 스타일 추가 */
 body {
-  font-family: "Segoe UI", sans-serif;
-  background: linear-gradient(to bottom, #f0f4f8, #d9e2ec);
-  padding-top: 70px;
+  font-family: "Inter", sans-serif; /* Google Fonts Inter 적용 */
   margin: 0;
+  padding: 0;
+  background-color: #f4f7f6;
   color: #333;
 }
-
-/* 툴바 */
 .toolbar {
-  background-color: #007bff;
-  padding: 10px 20px;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
   display: flex;
   justify-content: space-between;
-  box-sizing: border-box; /* ✅ 이거 꼭 필요함 */
-
   align-items: center;
+  padding: 15px 30px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .toolbar-left .logo {
-  color: #fff;
+  font-size: 24px;
   font-weight: bold;
+  color: #3b82f6;
   text-decoration: none;
-  font-size: 20px;
 }
 .toolbar-right {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   gap: 20px;
 }
 .toolbar-right li a {
-  color: #fff;
   text-decoration: none;
+  color: #555;
   font-weight: 600;
+  transition: color 0.2s ease-in-out;
+}
+.toolbar-right li a:hover {
+  color: #3b82f6;
 }
 
-/* 프로필 카드 */
+/* 사용자 제공 CSS (memberInfo 관련) */
+.memberInfo {
+  display: flex;
+  flex-direction: row; /* 수평 정렬 */
+  justify-content: center; /* 가운데 정렬 */
+  gap: 10px; /* 버튼 간 간격 */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.memberInfo li a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  text-decoration: none;
+  color: black;
+  font-size: 0.875rem; /* text-sm에 해당 */
+  font-weight: 500; /* medium */
+}
+.memberInfo li a img {
+  display: block;
+  width: 36px; /* 이미지 크기 */
+  height: 36px;
+  margin-bottom: 4px; /* 이미지와 텍스트 사이 간격 */
+}
+
 .profile-container {
-  max-width: 900px;
-  margin: 60px auto;
-  background: #fff;
-  padding: 40px;
-  border-radius: 14px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
-
 .profile-header {
   display: flex;
+  align-items: flex-start; /* Align items to the start for proper vertical spacing */
   gap: 30px;
-  align-items: center;
-  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #eee;
 }
-.profile-image {
-  width: 120px;
-  height: 120px;
+
+.image-section {
+  display: flex; /* Use flexbox */
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center horizontally */
+  flex-shrink: 0;
+}
+
+.profile-image-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.profile-info h2 {
-  margin: 0 0 10px;
-  font-size: 24px;
-}
-.profile-info p {
-  margin: 0;
-  font-size: 15px;
-  color: #555;
+  overflow: hidden;
+  border: 3px solid #3b82f6;
+  margin-bottom: 10px; /* Space between image and button */
+  cursor: pointer; /* 이미지 확대 가능 표시 */
 }
 
-.small-button,
-#editProfileBtn {
-  margin-top: 15px;
-  padding: 8px 14px;
-  border: none;
-  background: #007bff;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.small-button:hover,
-#editProfileBtn:hover {
-  background: #0056b3;
-}
-
-/* 갤러리 */
-.profile-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
-}
-.gallery-item {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
-}
-.gallery-item:hover {
-  transform: scale(1.03);
-}
-
-/* 모달 */
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
+.profile-image {
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  object-fit: cover;
+}
+
+.small-button {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  text-align: center;
+  display: inline-block;
+}
+.small-button:hover {
+  background-color: #2a6bbd;
+}
+.profile-info {
+  flex-grow: 1;
+}
+.profile-info h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #333;
+}
+.profile-info p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.profile-info button {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease-in-out;
+}
+.profile-info button:hover {
+  background-color: #2a6bbd;
+}
+
+/* 모달 스타일 */
+.modal {
+  display: none; /* 기본적으로 숨김 */
+  position: fixed; /* 화면에 고정 */
+  z-index: 1000; /* 다른 요소 위에 표시 */
+  left: 0;
+  top: 0;
+  width: 100%; /* 전체 너비 */
+  height: 100%; /* 전체 높이 */
+  overflow: auto; /* 내용이 넘칠 경우 스크롤 허용 */
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명 검정 배경 */
   justify-content: center;
   align-items: center;
-  z-index: 2000;
 }
-.modal.show {
-  display: flex;
-  animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+
 .modal-content {
-  background: #fff;
-  padding: 25px 30px;
-  width: 320px;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   text-align: center;
+  position: relative; /* For close button */
 }
-.modal-content input,
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.modal-content input[type="text"],
 .modal-content textarea {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
   box-sizing: border-box;
 }
+
+.modal-content textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
 .modal-content button {
-  margin: 6px;
-  padding: 10px 16px;
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
   border: none;
-  background: #007bff;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.modal-content button:hover {
+  background-color: #2a6bbd;
+}
+.comment-actions button {
+  background: none !important;
+  box-shadow: none !important;
+  color: #6b7280;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comment-actions button:hover {
+  color: #3b82f6;
+}
+.comment-actions .like-button:hover {
+  color: #ef4444;
+}
+
+#closeCommentModalButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 2rem;
+  padding: 0;
+  line-height: 1;
+  width: auto;
+  height: auto;
+  box-shadow: none;
+  border: none;
   cursor: pointer;
 }
-.modal-content button:hover {
-  background: #0056b3;
+#closeCommentModalButton:hover {
+  background-color: transparent;
+  color: #374151;
+}
+#closeImageModal,
+#closeEditModal,
+#confirmNoBtn,
+#closeAlertModal {
+  background-color: #9ca3af;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+#closeImageModal:hover,
+#closeEditModal:hover,
+#confirmNoBtn:hover,
+#closeAlertModal:hover {
+  background-color: #6b7280;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+}
+
+.my-posts-section {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.post-card {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.post-card-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+  display: block;
+  background-color: #e0e0e0;
+}
+
+.post-card-content-wrapper {
+  padding: 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.post-card-title {
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #333;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-card-text {
+  font-size: 0.9375rem;
+  color: #666;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+}
+
+.post-card-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%; /* 원형 버튼 */
+  width: 28px; /* 크기 조절 */
+  height: 28px; /* 크기 조절 */
+  font-size: 1rem; /* 아이콘 크기 */
+  line-height: 28px; /* 텍스트 수직 중앙 정렬 */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-card-delete-btn:hover {
+  background-color: #c82333;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+#commentModal .modal-content {
+  max-width: 1000px;
+  width: 90%;
+  display: flex;
+  min-height: 600px;
+  text-align: left;
+}
+#commentModal .modal-post-display {
+  flex: 2;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.modal-post-image {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+  background-color: #e0e0e0;
+  cursor: pointer; /* 이미지 확대 가능 표시 */
+}
+#commentModal .modal-comment-area {
+  flex: 1;
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+}
+#commentModal .comment-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+#commentModal .modal-post-content-wrapper {
+  padding: 24px;
+}
+#modalCommentInput {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+}
+#modalCommentSubmitButton {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  margin-left: 10px;
+}
+#modalCommentSubmitButton:hover {
+  background-color: #2a6bbd;
+}
+
+.comment-item,
+.reply-item {
+  background-color: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.reply-item {
+  margin-left: 20px;
+  background-color: #fdfdfd;
+}
+.comment-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+.comment-text-line {
+  display: flex;
+  align-items: baseline;
+}
+.comment-text-line .comment-username {
+  font-weight: 600;
+  color: #1f2937;
+  margin-right: 8px;
+  font-size: 0.875rem;
+}
+.comment-text-line .comment-body {
+  color: #374151;
+  font-size: 0.875rem;
+  flex: 1;
+}
+.comment-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  gap: 12px;
+  margin-left: 0;
+}
+.comment-actions button {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+.comment-actions .like-button .comment-like-count {
+  margin-right: 4px;
+}
+
+.reply-input-area {
+  background-color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  margin-left: 15px;
+}
+.reply-input-area input {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.reply-input-area button {
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  background-color: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+}
+.reply-input-area button:hover {
+  background-color: #d1d5db;
+}
+
+.view-replies-toggle {
+  color: #374151 !important;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 4px;
+  display: block;
+  text-align: left;
+  padding: 4px 0;
+  cursor: pointer;
+  margin-left: 0px;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.view-replies-toggle:hover {
+  text-decoration: underline;
+  color: #3b82f6 !important;
+}
+.replies-list {
+  margin-left: 0px;
+  padding-left: 0px;
 }

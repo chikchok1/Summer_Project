@@ -36,14 +36,15 @@ loginForm.addEventListener("submit", (e) => {
   );
 
   if (foundUser) {
-    // 로그인 성공: 사용자 아이디를 loggedInUser로 localStorage에 저장
-    localStorage.setItem("loggedInUser", foundUser.userid); // userid를 저장하여 고유하게 식별
+    // 로그인 성공: 사용자 아이디 대신 사용자 이름을 loggedInUser로 localStorage에 저장
+    // signup.html에서 username 필드에 사용자 이름이 저장된다고 가정합니다.
+    localStorage.setItem("loggedInUser", foundUser.username); // <--- 이 부분을 userid에서 username으로 변경했습니다.
     showModal("로그인 성공!");
     // 모달이 닫힌 후 메인 페이지(test.html)로 이동하도록 이벤트 리스너 추가
     closeModalButton.removeEventListener("click", hideModal); // 기존 리스너 제거
     closeModalButton.addEventListener("click", () => {
       hideModal();
-      window.location.href = "/Summer_Project/html/test.html";
+      window.location.href = "/Summer_Project/html/index.html";
     });
   } else {
     // 로그인 실패: 모달로 메시지 표시
