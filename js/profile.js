@@ -257,16 +257,15 @@ function createPostCardElement(postData) {
     ? `<img src="${postData.imageUrl}" alt="게시글 이미지" class="post-card-image">`
     : "";
 
+  // [수정] 게시글 제목 대신 작성자 이름이 표시되도록 변경
   postCard.innerHTML = `
-            ${imageHtml}
-            <div class="post-card-content-wrapper">
-                <h4 class="post-card-title">${
-                  postData.text.split("\n")[0] || "제목 없음"
-                }</h4>
-                <p class="post-card-text">${truncatedContent}</p>
-            </div>
-            <button class="post-card-delete-btn" aria-label="삭제">&times;</button>
-        `;
+              ${imageHtml}
+              <div class="post-card-content-wrapper">
+                  <h4 class="post-card-title">${postData.author}</h4>
+                  <p class="post-card-text">${truncatedContent}</p>
+              </div>
+              <button class="post-card-delete-btn" aria-label="삭제">&times;</button>
+          `;
 
   postCard.addEventListener("click", (event) => {
     if (!event.target.classList.contains("post-card-delete-btn")) {
@@ -342,38 +341,40 @@ window.renderComments = function (comments, container, isReply = false) {
     commentItem.dataset.id = comment.id;
     commentItem.className = isReply ? "reply-item" : "comment-item";
     commentItem.innerHTML = `
-              <div class="comment-content-wrapper">
-                  <div class="comment-text-line">
-                      <span class="comment-username">${comment.username}</span>
-                      <span class="comment-body">${comment.text}</span>
-                  </div>
-                  <div class="comment-time">${comment.time}</div>
-              </div>
-              <div class="comment-actions">
-                  <button class="like-button ${
-                    hasUserLikedComment ? "text-red-500" : "text-gray-500"
-                  }" onclick="window.toggleCommentLike(this)">
-                      <span class="comment-like-count">${
-                        (comment.likedBy || []).length
-                      }개</span> 좋아요
-                  </button>
-                  ${
-                    !isReply
-                      ? `<button onclick="window.toggleReplyInput(this)">답글 달기</button>`
-                      : ""
-                  }
-              </div>
-              <div class="reply-input-area hidden mt-3">
-                  <input type="text" placeholder="답글을 작성하세요..." class="w-full px-3 py-2 text-sm border rounded-lg">
-                  <button onclick="window.submitReply(this)">등록</button>
-              </div>
-              ${
-                !isReply && comment.replies && comment.replies.length > 0
-                  ? `<button class="view-replies-toggle" onclick="window.toggleViewReplies(this)">— 답글 보기 (${comment.replies.length}개)</button>`
-                  : ""
-              }
-              <div class="replies-list mt-3 space-y-2 hidden"></div>
-          `;
+                    <div class="comment-content-wrapper">
+                        <div class="comment-text-line">
+                            <span class="comment-username">${
+                              comment.username
+                            }</span>
+                            <span class="comment-body">${comment.text}</span>
+                        </div>
+                        <div class="comment-time">${comment.time}</div>
+                    </div>
+                    <div class="comment-actions">
+                        <button class="like-button ${
+                          hasUserLikedComment ? "text-red-500" : "text-gray-500"
+                        }" onclick="window.toggleCommentLike(this)">
+                            <span class="comment-like-count">${
+                              (comment.likedBy || []).length
+                            }개</span> 좋아요
+                        </button>
+                        ${
+                          !isReply
+                            ? `<button onclick="window.toggleReplyInput(this)">답글 달기</button>`
+                            : ""
+                        }
+                    </div>
+                    <div class="reply-input-area hidden mt-3">
+                        <input type="text" placeholder="답글을 작성하세요..." class="w-full px-3 py-2 text-sm border rounded-lg">
+                        <button onclick="window.submitReply(this)">등록</button>
+                    </div>
+                    ${
+                      !isReply && comment.replies && comment.replies.length > 0
+                        ? `<button class="view-replies-toggle" onclick="window.toggleViewReplies(this)">— 답글 보기 (${comment.replies.length}개)</button>`
+                        : ""
+                    }
+                    <div class="replies-list mt-3 space-y-2 hidden"></div>
+                `;
     container.appendChild(commentItem);
 
     if (comment.replies && comment.replies.length > 0) {
@@ -588,6 +589,40 @@ document.addEventListener("DOMContentLoaded", () => {
   profileLogoutButton.addEventListener("click", () => {
     localStorage.removeItem("loggedInUser");
     window.location.reload();
+  });
+
+  // --- 엔터 키 입력 관련 리스너 ---
+
+  // 프로필 편집 모달의 입력 필드에서 엔터 키 처리
+  [nameInput, phoneInput, bioInput].forEach((input) => {
+    input.addEventListener("keydown", (event) => {
+      if (editModal.style.display === "flex" && event.key === "Enter") {
+        event.preventDefault(); // 기본 동작(줄바꿈 등) 방지
+        saveBtn.click();
+      }
+    });
+  });
+
+  // 댓글 입력창에서 엔터 키 처리
+  modalCommentInput.addEventListener("keydown", (event) => {
+    if (commentModal.style.display === "flex" && event.key === "Enter") {
+      event.preventDefault();
+      modalCommentSubmitButton.click();
+    }
+  });
+
+  // 전역 엔터 키 리스너 (확인 및 알림 모달용)
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+
+    // 확인 모달이 활성화된 경우 '네' 버튼 클릭
+    if (confirmationModal.style.display === "flex") {
+      confirmYesBtn.click();
+    }
+    // 알림 모달이 활성화된 경우 '확인' 버튼 클릭
+    if (alertDialog.style.display === "flex") {
+      closeAlertModal.click();
+    }
   });
 
   // --- 모달 닫기 리스너 ---
