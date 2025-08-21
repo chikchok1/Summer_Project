@@ -1,6 +1,97 @@
-// DOM 요소
+// =====================[ 검색 페이지 전용 유틸 (profile.js 의존성 제거) ]=====================
+
+// 상수
+const API_BASE = window.API_BASE || "http://localhost:8080";
+const TOKEN_KEY = window.TOKEN_KEY || "authToken"; // "Bearer xxx"
+const LOGIN_URL = window.LOGIN_URL || "/Summer_Project/html/login.html";
+
+// 공용 유틸
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY); // "Bearer xxx"
+}
+function dropToLogin(msg) {
+  try {
+    if (msg) alert(msg);
+  } catch {}
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("loggedInUser");
+  window.location.href = LOGIN_URL;
+}
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+function dateOnly(v) {
+  if (!v) return "";
+  const s = String(v);
+  if (s.includes("T")) return s.split("T")[0];
+  if (s.includes(" ")) return s.split(" ")[0];
+  return s;
+}
+function showCustomAlert(message) {
+  alert(message);
+}
+function showCustomConfirm(message) {
+  return Promise.resolve(confirm(message));
+}
+
+// 인증 fetch
+async function authFetch(url, options = {}) {
+  const token = getToken(); // 토큰 없어도 시도(공개 엔드포인트 대비)
+  const headers = { ...(options.headers || {}) };
+  if (token) headers.Authorization = token;
+
+  let res;
+  try {
+    res = await fetch(url, { ...options, headers });
+  } catch (e) {
+    throw new Error(`네트워크 오류: ${e?.message || e}`);
+  }
+
+  if (res.status === 401) {
+    dropToLogin("세션이 만료되었습니다. 다시 로그인하세요.");
+    throw new Error("HTTP 401 (Unauthorized)");
+  }
+  return res;
+}
+async function authJson(url, method, bodyObj) {
+  return authFetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bodyObj),
+  });
+}
+
+// 서버 → UI 포맷 매핑
+function mapPostToUI(post) {
+  const authorUsername =
+    post.author?.username ??
+    post.authorUsername ??
+    post.authorId ??
+    post.username ??
+    null;
+  const authorName = post.author?.name ?? post.authorName ?? post.name ?? null;
+  return {
+    id: post.id,
+    text: post.content ?? post.text ?? "",
+    imageUrl: post.imageUrl ?? null,
+    tags: post.tags ?? [],
+    authorUsername,
+    authorName,
+    authorLabel: authorName || authorUsername || "익명",
+    time: dateOnly(post.createdAt ?? post.createDate ?? post.time ?? ""),
+    likeCount: post.likeCount ?? 0,
+    likedByMe: post.likedByMe ?? false,
+    commentsCount: post.commentsCount ?? 0,
+  };
+}
+
+// =====================[ DOM 요소 ]=====================
 const searchInput = document.getElementById("searchInput");
 const resultsContainer = document.getElementById("searchResults");
+
 const commentModal = document.getElementById("commentModal");
 const modalPostTitle = document.getElementById("modalPostTitle");
 const modalPostImage = document.getElementById("modalPostImage");
@@ -17,395 +108,381 @@ const closeCommentModalButton = document.getElementById(
   "closeCommentModalButton"
 );
 
-// 전역 변수
-let allPosts = [];
-let currentViewingPost = null;
+// =====================[ 전역 상태 ]=====================
+let searchResults = []; // 검색 결과 목록(UI용)
+let currentViewingPost = null; // 모달에서 보고 있는 게시글(UI용)
 
-// 데이터 로드 및 정규화
-function loadAllPosts() {
-  const storedPosts = localStorage.getItem("snsPosts");
-  let posts = storedPosts ? JSON.parse(storedPosts) : [];
-
-  // 데이터 구조 정규화: 모든 댓글/답글에 likedBy 배열이 있도록 보장
-  posts.forEach((post) => {
-    if (post.comments) {
-      post.comments.forEach((comment) => {
-        if (!comment.likedBy) comment.likedBy = [];
-        if (comment.replies) {
-          comment.replies.forEach((reply) => {
-            if (!reply.likedBy) reply.likedBy = [];
-          });
-        }
-      });
-    }
-  });
-  allPosts = posts;
+// =====================[ 서버 통신 ]=====================
+async function fetchAllPosts() {
+  let res;
+  try {
+    res = await authFetch(`${API_BASE}/api/posts`);
+  } catch (e) {
+    throw new Error(`POSTS 조회 실패: ${e.message || e}`);
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`POSTS 조회 실패(${res.status}) ${text}`);
+  }
+  let raw;
+  try {
+    raw = await res.json();
+  } catch (e) {
+    throw new Error(`POSTS JSON 파싱 실패: ${e.message || e}`);
+  }
+  if (!Array.isArray(raw))
+    throw new Error(`POSTS 응답이 배열이 아님: ${typeof raw}`);
+  return raw.map(mapPostToUI);
 }
 
-// 게시글 카드 생성
-function createPostCard(post) {
-  const card = document.createElement("div");
-  card.className = "post-card";
-  card.addEventListener("click", () => openPostViewModal(post.id));
+// 단건 게시글 재조회 후 카드/상태 반영
+async function refreshSinglePost(postId, cardEl) {
+  try {
+    const res = await authFetch(`${API_BASE}/api/posts/${postId}`);
+    if (!res.ok) throw new Error(`단건 조회 실패(${res.status})`);
+    const p = await res.json();
+    const ui = mapPostToUI(p);
 
-  const imageHtml = post.imageUrl
-    ? `<img src="${post.imageUrl}" alt="게시글 이미지" class="post-card-image">`
-    : `<div class="post-card-image" style="background-color: #eee;"></div>`;
+    // 카드 내부 좋아요 상태 반영
+    const likeBtn = cardEl.querySelector('[data-action="like"]');
+    likeBtn.classList.toggle("liked", ui.likedByMe);
+    likeBtn.querySelector("span:first-child").textContent = ui.likedByMe
+      ? "💖"
+      : "❤️";
+    likeBtn.querySelector(".like-count").textContent = ui.likeCount;
+
+    // 검색 결과 배열에도 반영
+    const idx = searchResults.findIndex((x) => String(x.id) === String(postId));
+    if (idx >= 0) searchResults[idx] = ui;
+  } catch (e) {
+    console.error("단건 게시글 갱신 실패:", e);
+  }
+}
+
+// =====================[ 카드 UI ]=====================
+function createPostCardElement(uiPost) {
+  const card = document.createElement("div");
+  card.classList.add("post-card");
+  card.dataset.postId = uiPost.id;
+
+  const imageHtml = uiPost.imageUrl
+    ? `<img src="${uiPost.imageUrl}" alt="게시글 이미지" class="post-image">`
+    : "";
+
+  const tagsHtml = uiPost.tags?.length
+    ? `<div class="mt-2 flex flex-wrap gap-2">${uiPost.tags
+        .map(
+          (t) =>
+            `<span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">#${escapeHtml(
+              t
+            )}</span>`
+        )
+        .join("")}</div>`
+    : "";
 
   card.innerHTML = `
-          ${imageHtml}
-          <div class="post-card-content-wrapper">
-            <div class="post-card-author">${post.author}</div>
-            <p class="post-card-text">${post.text}</p>
-            <div class="post-card-time">${post.time}</div>
+    ${imageHtml}
+    <div class="p-4">
+      <div class="flex items-start">
+        <div class="flex-1 pr-4">
+          <p class="text-gray-800 leading-relaxed mb-2">${escapeHtml(
+            uiPost.text
+          )}</p>
+          ${tagsHtml}
+          <div class="flex items-center text-sm text-gray-500 mt-4">
+            <span class="font-semibold text-gray-700 mr-2">${escapeHtml(
+              uiPost.authorLabel
+            )}</span>
+            <span>• ${escapeHtml(String(uiPost.time))}</span>
           </div>
-        `;
+        </div>
+      </div>
+
+      <div class="post-actions flex items-center mt-4 gap-4">
+        <button class="like-btn inline-flex items-center gap-1 whitespace-nowrap text-gray-600 hover:text-red-500 transition-colors duration-200 ${
+          uiPost.likedByMe ? "liked text-red-500" : ""
+        }" data-action="like">
+          <span>${uiPost.likedByMe ? "💖" : "❤️"}</span>
+          <span class="like-count">${uiPost.likeCount}</span>
+          <span>좋아요</span>
+        </button>
+
+        <button class="comment-btn inline-flex items-center gap-1 whitespace-nowrap text-gray-600 hover:text-blue-500 transition-colors duration-200"
+                data-action="comments">
+          <span>💬</span><span>댓글</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // 카드 클릭 → 댓글 모달 (버튼 제외)
+  card.addEventListener("click", (e) => {
+    if (e.target.closest("button")) return;
+    openComments(uiPost.id);
+  });
+
+  // 좋아요
+  const likeBtn = card.querySelector('[data-action="like"]');
+  likeBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const likedNow = likeBtn.classList.contains("liked");
+    try {
+      const method = likedNow ? "DELETE" : "POST";
+      await authFetch(`${API_BASE}/api/posts/${uiPost.id}/like`, { method });
+      await refreshSinglePost(uiPost.id, card);
+    } catch (err) {
+      console.error("좋아요 실패:", err);
+      showCustomAlert("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  });
+
+  // 댓글 버튼
+  const cmtBtn = card.querySelector('[data-action="comments"]');
+  cmtBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openComments(uiPost.id);
+  });
+
   return card;
 }
 
-// 게시글 검색
-function searchPosts() {
-  loadAllPosts(); // 검색 시 항상 최신 데이터 로드
-  const keyword = searchInput.value.trim().toLowerCase();
+// =====================[ 검색 ]=====================
+function norm(s) {
+  return String(s || "")
+    .normalize("NFC")
+    .toLowerCase()
+    .trim();
+}
+
+async function searchPosts() {
+  const raw = (searchInput.value || "").trim();
   resultsContainer.innerHTML = "";
 
-  if (!keyword) {
+  if (!raw) {
     resultsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500">검색할 사용자 이름을 입력해주세요.</p>`;
     return;
   }
 
-  const matchedPosts = allPosts.filter(
-    (post) => post.author.toLowerCase() === keyword
-  );
+  const keywords = raw.split(/\s+/).map(norm).filter(Boolean);
 
-  if (matchedPosts.length === 0) {
-    resultsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500">'${keyword}' 사용자의 게시글이 없습니다.</p>`;
-  } else {
-    matchedPosts.forEach((post) => {
-      const postCard = createPostCard(post);
-      resultsContainer.appendChild(postCard);
+  try {
+    const all = await fetchAllPosts(); // 서버에서 받아서 UI 매핑까지
+    // 이름/표시명/아이디 부분일치 (키워드 AND)
+    searchResults = all.filter((p) => {
+      const cands = [p.authorLabel, p.authorName, p.authorUsername]
+        .filter(Boolean)
+        .map(norm);
+      return keywords.every((kw) => cands.some((n) => n.includes(kw)));
     });
+
+    renderSearchResults();
+  } catch (e) {
+    console.error("검색 실패:", e);
+    const msg = e?.message ? e.message : "알 수 없는 오류";
+    resultsContainer.innerHTML = `<p class="col-span-full text-center text-red-500">검색 중 오류가 발생했습니다: ${escapeHtml(
+      msg
+    )}</p>`;
+    showCustomAlert(`검색 실패: ${msg}`);
   }
 }
 
-// 모달 열기
-function openPostViewModal(postId) {
-  loadAllPosts(); // 모달 열 때도 최신 데이터 로드
-  const post = allPosts.find((p) => p.id === postId);
-  if (!post) return;
-  currentViewingPost = post;
-
-  modalPostTitle.textContent = post.text.split("\n")[0] || "게시글";
-  modalPostAuthor.textContent = `작성자: ${post.author}`;
-  modalPostTime.textContent = post.time;
-  modalPostText.textContent = post.text;
-
-  if (post.imageUrl) {
-    modalPostImage.src = post.imageUrl;
-    modalPostImage.classList.remove("hidden");
-  } else {
-    modalPostImage.classList.add("hidden");
-  }
-
-  modalPostTags.innerHTML = "";
-  if (post.tags && post.tags.length > 0) {
-    post.tags.forEach((tag) => {
-      const tagSpan = document.createElement("span");
-      tagSpan.className =
-        "bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full";
-      tagSpan.textContent = `#${tag}`;
-      modalPostTags.appendChild(tagSpan);
-    });
-  }
-
-  renderComments(post.comments || [], modalCommentList);
-  commentModal.style.display = "flex";
-}
-
-// 댓글 렌더링
-window.renderComments = function (comments, container, isReply = false) {
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  container.innerHTML = "";
-  if (!comments || comments.length === 0) {
-    container.innerHTML = `<p class="text-gray-500 text-center py-4 text-sm">${
-      isReply ? "답글이 없습니다." : "첫 댓글을 남겨보세요!"
-    }</p>`;
+function renderSearchResults() {
+  resultsContainer.innerHTML = "";
+  if (!searchResults.length) {
+    resultsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500">해당 사용자의 게시글이 없습니다.</p>`;
     return;
   }
-  comments.forEach((comment) => {
-    const item = document.createElement("div");
-    item.className = isReply ? "reply-item" : "comment-item";
-    item.dataset.id = comment.id;
 
-    const isLikedByCurrentUser =
-      loggedInUser && comment.likedBy && comment.likedBy.includes(loggedInUser);
-    const likeCount = comment.likedBy ? comment.likedBy.length : 0;
-
-    item.innerHTML = `
-                <div class="comment-content-wrapper">
-                    <div class="comment-text-line"><span class="comment-username">${
-                      comment.username
-                    }</span><span class="comment-body">${
-      comment.text
-    }</span></div>
-                    <div class="comment-time">${comment.time}</div>
-                </div>
-                <div class="comment-actions">
-                    <button class="like-button ${
-                      isLikedByCurrentUser ? "text-red-500" : ""
-                    }" onclick="toggleCommentLike('${
-      comment.id
-    }')"><span class="comment-like-count">${likeCount}개</span> 좋아요</button>
-                    ${
-                      !isReply
-                        ? `<button onclick="toggleReplyInput(this)">답글 달기</button>`
-                        : ""
-                    }
-                </div>
-                <div class="reply-input-area hidden"><input type="text" placeholder="답글 작성..."><button onclick="submitReply(this, '${
-                  comment.id
-                }')">등록</button></div>
-                ${
-                  !isReply && comment.replies?.length > 0
-                    ? `<button class="view-replies-toggle" onclick="toggleViewReplies(this)">— 답글 보기 (${comment.replies.length}개)</button>`
-                    : ""
-                }
-                <div class="replies-list hidden"></div>
-            `;
-    container.appendChild(item);
-    if (comment.replies?.length > 0) {
-      renderComments(
-        comment.replies,
-        item.querySelector(".replies-list"),
-        true
-      );
-    }
+  searchResults.forEach((p) => {
+    const card = createPostCardElement(p); // onAfterDelete 전달 제거
+    resultsContainer.prepend(card);
   });
-};
+}
 
-// 댓글/답글/좋아요를 위한 범용 상태 업데이트 함수
-function updateSnsData(updateFunction) {
-  loadAllPosts(); // 항상 최신 데이터로 시작
-  updateFunction(allPosts); // 전달된 함수로 데이터 변경
-  localStorage.setItem("snsPosts", JSON.stringify(allPosts)); // 변경된 데이터 저장
-  // 현재 모달이 열려있으면, 댓글 목록을 다시 렌더링
-  if (currentViewingPost) {
-    const updatedPost = allPosts.find((p) => p.id === currentViewingPost.id);
-    if (updatedPost) {
-      currentViewingPost = updatedPost;
-      renderComments(currentViewingPost.comments || [], modalCommentList);
+// =====================[ 댓글 모달 (서버 연동) ]=====================
+async function openComments(postId) {
+  try {
+    const postRes = await authFetch(`${API_BASE}/api/posts/${postId}`);
+    if (!postRes.ok) throw new Error(`게시글 조회 실패(${postRes.status})`);
+    const post = await postRes.json();
+    currentViewingPost = mapPostToUI(post);
+
+    const cRes = await authFetch(`${API_BASE}/api/posts/${postId}/comments`);
+    if (!cRes.ok) throw new Error(`댓글 조회 실패(${cRes.status})`);
+    const comments = await cRes.json();
+
+    const ui = currentViewingPost;
+
+    if (modalPostTitle)
+      modalPostTitle.textContent = ui.text.split("\n")[0] || "제목 없음";
+    if (ui.imageUrl) {
+      modalPostImage.src = ui.imageUrl;
+      modalPostImage.classList.remove("hidden");
+    } else {
+      modalPostImage.classList.add("hidden");
+      modalPostImage.src = "";
     }
+    modalPostText.textContent = ui.text;
+    modalPostTags.innerHTML = (ui.tags || [])
+      .map(
+        (t) =>
+          `<span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">#${escapeHtml(
+            t
+          )}</span>`
+      )
+      .join("");
+    modalPostAuthor.textContent = ui.authorLabel;
+    modalPostTime.textContent = ui.time;
+
+    renderComments(comments, modalCommentList);
+    if (commentModal) commentModal.style.display = "flex";
+  } catch (e) {
+    console.error("댓글 열기 실패:", e);
+    showCustomAlert("댓글을 불러오는 데 실패했습니다.");
   }
 }
+
+function renderComments(comments, container) {
+  container.innerHTML = "";
+  if (!Array.isArray(comments) || comments.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 text-center py-4">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>`;
+    return;
+  }
+  comments.forEach((c) => {
+    const item = document.createElement("div");
+    item.className = "comment-item";
+    item.dataset.id = c.id;
+
+    const likeCount =
+      c.likeCount ?? (Array.isArray(c.likedBy) ? c.likedBy.length : 0);
+    const likedByMe = c.likedByMe ?? false;
+
+    item.innerHTML = `
+      <div class="comment-content-wrapper">
+        <div class="comment-text-line">
+          <span class="comment-username">${escapeHtml(
+            c.author?.username ?? c.username ?? "익명"
+          )}</span>
+          <span class="comment-body">${escapeHtml(
+            c.content ?? c.text ?? ""
+          )}</span>
+        </div>
+        <div class="comment-time">${escapeHtml(
+          c.createdAt ?? c.time ?? ""
+        )}</div>
+      </div>
+      <div class="comment-actions">
+        <button class="like-button ${
+          likedByMe ? "text-red-500" : "text-gray-500"
+        } hover:text-red-500 transition-colors duration-200"
+                data-action="comment-like">
+          <span class="comment-like-count">${likeCount}개</span> 좋아요
+        </button>
+      </div>
+    `;
+    item
+      .querySelector('[data-action="comment-like"]')
+      .addEventListener("click", () => toggleCommentLike(c.id, item));
+    container.appendChild(item);
+  });
+}
+
+async function toggleCommentLike(commentId, itemEl) {
+  try {
+    const btn = itemEl.querySelector('[data-action="comment-like"]');
+    const liked = btn.classList.contains("text-red-500");
+    const method = liked ? "DELETE" : "POST";
+    await authFetch(`${API_BASE}/api/comments/${commentId}/like`, { method });
+    await refreshCommentsOfCurrentPost();
+  } catch (e) {
+    console.error("댓글 좋아요 실패:", e);
+    showCustomAlert("댓글 좋아요에 실패했습니다.");
+  }
+}
+
+async function refreshCommentsOfCurrentPost() {
+  if (!currentViewingPost?.id) return;
+  try {
+    const res = await authFetch(
+      `${API_BASE}/api/posts/${currentViewingPost.id}/comments`
+    );
+    if (!res.ok) throw new Error(`댓글 재조회 실패(${res.status})`);
+    const comments = await res.json();
+    renderComments(comments, modalCommentList);
+  } catch (e) {
+    console.error("댓글 재조회 실패:", e);
+  }
+}
+
+// 댓글 작성 (JWT 만료는 서버 401로 처리)
+modalCommentSubmitButton?.addEventListener("click", async () => {
+  const text = (modalCommentInput.value || "").trim();
+  if (!text) return showCustomAlert("댓글 내용을 입력해주세요.");
+  if (!currentViewingPost?.id) return;
+
+  try {
+    const res = await authJson(
+      `${API_BASE}/api/posts/${currentViewingPost.id}/comments`,
+      "POST",
+      { content: text }
+    );
+    if (!res.ok) throw new Error(`댓글 생성 실패(${res.status})`);
+    modalCommentInput.value = "";
+    await refreshCommentsOfCurrentPost();
+    modalCommentList.scrollTop = modalCommentList.scrollHeight;
+  } catch (e) {
+    console.error(e);
+    showCustomAlert("댓글 생성에 실패했습니다.");
+  }
+});
+
+// =====================[ 툴바: 로그인/회원가입 노출만 ]=====================
 function updateToolbarUI() {
   const toolbarRight = document.getElementById("toolbarRight");
-  const loggedInUser = localStorage.getItem("loggedInUser");
+  if (!toolbarRight) return;
 
+  const loggedInUser = localStorage.getItem("loggedInUser");
   if (loggedInUser) {
-    // 로그인 상태: 오른쪽 상단을 비움
-    toolbarRight.innerHTML = "";
+    toolbarRight.innerHTML = ""; // 로그인 상태면 비워둠(프로필 페이지 기능 없음)
   } else {
-    // 비로그인 상태: 로그인/회원가입 아이콘을 표시
-    // ▼▼▼ 이 내용이 올바르게 채워져 있는지 확인하세요 ▼▼▼
     toolbarRight.innerHTML = `
       <ul class="memberInfo">
         <li id="loginButton">
           <a href="/Summer_Project/html/login.html">
-            <img
-              src="https://img.cgv.co.kr/R2014/images/common/ico/loginPassword.png"
-              alt="로그인"
-              onerror="this.src='https://placehold.co/36x36/ccc/000?text=로그인';"
-            />
+            <img src="https://img.cgv.co.kr/R2014/images/common/ico/loginPassword.png" alt="로그인"
+                 onerror="this.src='https://placehold.co/36x36/ccc/000?text=로그인';"/>
             <span>로그인</span>
           </a>
         </li>
         <li id="signupButton">
           <a href="/Summer_Project/html/signup.html">
-            <img
-              src="https://img.cgv.co.kr/R2014/images/common/ico/loginJoin.png"
-              alt="회원가입"
-              onerror="this.src='https://placehold.co/36x36/ccc/000?text=회원가입';"
-            />
+            <img src="https://img.cgv.co.kr/R2014/images/common/ico/loginJoin.png" alt="회원가입"
+                 onerror="this.src='https://placehold.co/36x36/ccc/000?text=회원가입';"/>
             <span>회원가입</span>
           </a>
         </li>
       </ul>
     `;
-    // ▲▲▲ 여기까지 확인 ▲▲▲
   }
 }
 
-// 초기화 및 이벤트 리스너
+// =====================[ 초기화 ]=====================
 document.addEventListener("DOMContentLoaded", () => {
-  // ▼▼▼ [추가] 페이지 로드 시 툴바 UI 업데이트 함수 호출 ▼▼▼
   updateToolbarUI();
 
-  // ... 나머지 기존 코드 ...
-});
-
-// 댓글 추가
-function addComment() {
-  const text = modalCommentInput.value.trim();
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  if (!text) return;
-  if (!loggedInUser) {
-    alert("로그인이 필요합니다.");
-    return;
-  }
-
-  updateSnsData((posts) => {
-    const post = posts.find((p) => p.id === currentViewingPost.id);
-    if (post) {
-      const newComment = {
-        id: "comment-" + Date.now(),
-        username: loggedInUser,
-        text,
-        time: new Date().toLocaleString("ko-KR"),
-        likedBy: [],
-        replies: [],
-      };
-      if (!post.comments) post.comments = [];
-      post.comments.push(newComment);
-    }
-  });
-  modalCommentInput.value = "";
-}
-
-// 답글 제출
-window.submitReply = function (button, parentId) {
-  const area = button.closest(".reply-input-area");
-  const input = area.querySelector("input");
-  const text = input.value.trim();
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  if (!text) return;
-  if (!loggedInUser) {
-    alert("로그인이 필요합니다.");
-    return;
-  }
-
-  updateSnsData((posts) => {
-    const post = posts.find((p) => p.id === currentViewingPost.id);
-    if (post) {
-      const findComment = (id, comments) => {
-        for (const c of comments) {
-          if (c.id === id) return c;
-          if (c.replies) {
-            const found = findComment(id, c.replies);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-      const parentComment = findComment(parentId, post.comments);
-      if (parentComment) {
-        const newReply = {
-          id: "reply-" + Date.now(),
-          username: loggedInUser,
-          text,
-          time: new Date().toLocaleString("ko-KR"),
-          likedBy: [],
-        };
-        if (!parentComment.replies) parentComment.replies = [];
-        parentComment.replies.push(newReply);
-      }
-    }
-  });
-  input.value = "";
-};
-
-// 좋아요 토글
-window.toggleCommentLike = function (commentId) {
-  const loggedInUser = localStorage.getItem("loggedInUser");
-  if (!loggedInUser) {
-    alert("좋아요를 누르려면 로그인이 필요합니다.");
-    return;
-  }
-
-  updateSnsData((posts) => {
-    const post = posts.find((p) => p.id === currentViewingPost.id);
-    if (post) {
-      const findComment = (id, comments) => {
-        for (const c of comments) {
-          if (c.id === id) return c;
-          if (c.replies) {
-            const found = findComment(id, c.replies);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-      const commentObj = findComment(commentId, post.comments);
-      if (commentObj) {
-        if (!commentObj.likedBy) commentObj.likedBy = [];
-        const userIndex = commentObj.likedBy.indexOf(loggedInUser);
-        if (userIndex > -1) {
-          commentObj.likedBy.splice(userIndex, 1);
-        } else {
-          commentObj.likedBy.push(loggedInUser);
-        }
-      }
-    }
-  });
-};
-
-window.toggleReplyInput = (button) =>
-  button
-    .closest(".comment-item")
-    .querySelector(".reply-input-area")
-    .classList.toggle("hidden");
-window.toggleViewReplies = (button) => {
-  const repliesList = button
-    .closest(".comment-item")
-    .querySelector(".replies-list");
-  const isHidden = repliesList.classList.contains("hidden");
-  repliesList.classList.toggle("hidden");
-  button.textContent = isHidden
-    ? `— 답글 숨기기 (${repliesList.children.length}개)`
-    : `— 답글 보기 (${repliesList.children.length}개)`;
-};
-
-// 초기화 및 이벤트 리스너
-document.addEventListener("DOMContentLoaded", () => {
-  loadAllPosts();
-  searchInput.addEventListener("keyup", (event) => {
+  // Enter 입력 시 검색
+  searchInput?.addEventListener("keyup", (event) => {
     if (event.key === "Enter") searchPosts();
   });
-  closeCommentModalButton.addEventListener("click", () => {
+
+  // 모달 닫기
+  closeCommentModalButton?.addEventListener("click", () => {
     commentModal.style.display = "none";
     currentViewingPost = null;
   });
-  modalCommentSubmitButton.addEventListener("click", addComment);
-  modalCommentInput.addEventListener("keyup", (event) => {
-    if (event.key === "Enter") addComment();
-  });
 
-  // 실시간 동기화를 위한 Storage Event Listener 추가
-  window.addEventListener("storage", (event) => {
-    if (event.key === "snsPosts") {
-      console.log(
-        "localStorage가 다른 탭에서 변경되어 데이터를 다시 로드합니다."
-      );
-      loadAllPosts();
-
-      // 현재 검색 결과 업데이트
-      if (document.getElementById("searchResults").innerHTML.trim() !== "") {
-        searchPosts();
-      }
-
-      // 모달이 열려있다면 내용 업데이트
-      if (commentModal.style.display === "flex" && currentViewingPost) {
-        const updatedPost = allPosts.find(
-          (p) => p.id === currentViewingPost.id
-        );
-        if (updatedPost) {
-          currentViewingPost = updatedPost;
-          renderComments(currentViewingPost.comments || [], modalCommentList);
-        } else {
-          commentModal.style.display = "none";
-          currentViewingPost = null;
-          alert("보고 있던 게시글이 삭제되었습니다.");
-        }
-      }
-    }
+  // 댓글 입력창 Enter 제출
+  modalCommentInput?.addEventListener("keyup", (event) => {
+    if (event.key === "Enter") modalCommentSubmitButton?.click();
   });
 });

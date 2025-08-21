@@ -55,18 +55,6 @@
     <!-- 프로필 메인 -->
     <div class="profile-container">
       <div class="profile-header">
-        <div class="image-section">
-          <div class="profile-image-wrapper">
-            <img id="profileImage" class="profile-image" alt="프로필 사진" />
-          </div>
-          <label class="small-button" for="imageInput">사진 변경</label>
-          <input
-            type="file"
-            id="imageInput"
-            accept="image/*"
-            style="display: none"
-          />
-        </div>
         <div class="profile-info">
           <h2 id="displayName"></h2>
           <p id="bio"></p>
@@ -98,27 +86,6 @@
         <textarea id="bioInput" placeholder="소개글"></textarea>
         <button id="saveBtn">저장</button>
         <button id="closeEditModal">닫기</button>
-      </div>
-    </div>
-
-    <!-- 이미지 확대 모달 -->
-    <div class="modal" id="imageModal">
-      <div
-        class="modal-content"
-        style="max-width: 90vw; max-height: 90vh; padding: 10px"
-      >
-        <img
-          src=""
-          alt="확대 이미지"
-          id="modalImage"
-          style="width: 100%; height: 100%; object-fit: contain"
-        />
-        <button
-          id="closeImageModal"
-          style="position: absolute; top: 10px; right: 10px; font-size: 1.5rem"
-        >
-          &times;
-        </button>
       </div>
     </div>
 

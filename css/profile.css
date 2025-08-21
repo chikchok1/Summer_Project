@@ -274,18 +274,21 @@ body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* 기존 .post-card 수정 */
 .post-card {
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  /* justify-content: space-between;  ← 제거 */
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   position: relative;
-  height: 250px;
-  overflow: hidden;
+  /* height: 250px;                   ← 고정 높이 제거 */
+  min-height: 160px; /* 필요하면 최소 높이만 */
+  overflow: visible; /* 우측 잘림 방지 */
+  padding-bottom: 10px; /* 하단 살짝 여백 */
 }
 
 .post-card:hover {
@@ -523,4 +526,17 @@ body {
 .replies-list {
   margin-left: 0px;
   padding-left: 0px;
+}
+/* 내 게시글 그리드 */
+#userPostsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px; /* 카드 사이 여백 */
+}
+
+/* 한 줄에 최대 3개까지만 */
+@media (min-width: 900px) {
+  #userPostsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

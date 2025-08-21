@@ -36,17 +36,31 @@ let currentViewingPostCard = null; // 현재 댓글 모달에서 보고 있는 �
 /**
  * 로컬 스토리지에서 게시글 데이터를 로드합니다.
  */
+// 게시글 데이터를 서버에서 가져오는 함수
 function loadPosts() {
-  const storedPosts = localStorage.getItem("snsPosts");
-  if (storedPosts) {
-    allPosts = JSON.parse(storedPosts);
-    renderAllPosts(); // 저장된 게시글을 화면에 렌더링
-  }
+  fetch("http://34.44.150.212:8080/api/posts", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("authToken")}`, // 로그인 토큰 추가
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && Array.isArray(data)) {
+        allPosts = data; // 서버에서 받은 게시글 데이터를 사용
+        renderAllPosts(); // 게시글 렌더링
+      } else {
+        console.error("게시글 데이터 형식이 잘못되었습니다.");
+        alert("게시글을 불러오는 데 실패했습니다.");
+      }
+    })
+    .catch((error) => {
+      console.error("게시글 불러오기 실패", error);
+      alert("게시글을 불러오는 데 실패했습니다.");
+    });
 }
 
-/**
- * 모든 게시글을 화면에 렌더링하는 함수 (초기 로드 및 데이터 변경 시 호출)
- */
+// 게시글 렌더링 함수
 function renderAllPosts() {
   feed.innerHTML = ""; // 기존 피드 내용을 비웁니다.
   allPosts.forEach((post) => {
@@ -207,34 +221,28 @@ window.toggleLike = function (button) {
 
   const postCard = button.closest(".post-card");
   const postId = postCard.dataset.postId;
-  const postObj = allPosts.find((post) => post.id === postId);
 
-  if (postObj) {
-    // likedBy 배열이 없으면 초기화
-    if (!postObj.likedBy) {
-      postObj.likedBy = [];
-    }
-
-    const likeIndex = postObj.likedBy.indexOf(loggedInUser);
-
-    if (likeIndex > -1) {
-      // 사용자가 이미 좋아요를 눌렀으면 취소
-      postObj.likedBy.splice(likeIndex, 1);
-      button.classList.remove("liked", "text-red-500");
-      button.classList.add("text-gray-600");
-      button.querySelector("span:first-child").textContent = "❤️"; // 빈 하트
-    } else {
-      // 사용자가 좋아요를 누르지 않았으면 추가
-      postObj.likedBy.push(loggedInUser);
-      button.classList.add("liked", "text-red-500");
-      button.classList.remove("text-gray-600");
-      button.querySelector("span:first-child").textContent = "💖"; // 채워진 하트
-    }
-    button.querySelector(
-      ".like-count"
-    ).textContent = `${postObj.likedBy.length}`;
-    savePosts(); // 좋아요 변경 후 로컬 스토리지에 저장
-  }
+  fetch(`http://34.44.150.212:8080/api/posts/${postId}/like`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("authToken")}`, // 로그인 토큰 추가
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("좋아요 추가 성공", data);
+      // 좋아요 UI 업데이트
+      const likeCount = button.querySelector(".like-count");
+      likeCount.textContent = `${data.likeCount}`; // 응답 받은 좋아요 수로 업데이트
+      button.classList.toggle("liked", data.likedByMe); // 좋아요 상태 토글
+      button.querySelector("span:first-child").textContent = data.likedByMe
+        ? "💖"
+        : "❤️"; // 하트 상태 변경
+    })
+    .catch((error) => {
+      console.error("좋아요 추가 실패", error);
+      alert("좋아요 추가에 실패했습니다.");
+    });
 };
 
 // 댓글 섹션 토글 기능 (이제 댓글 모달을 띄웁니다)
@@ -385,28 +393,44 @@ window.toggleCommentLike = function (button) {
   );
 
   if (commentObj) {
-    // likedBy 배열이 없으면 초기화
-    if (!commentObj.likedBy) {
-      commentObj.likedBy = [];
-    }
+    // 서버로 좋아요 토글 요청
+    fetch(`http://34.44.150.212:8080/api/comments/${commentId}/like`, {
+      method: commentObj.likedBy.includes(loggedInUser) ? "DELETE" : "POST", // 좋아요가 있는지 확인 후 적절한 메서드 사용
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`, // 로그인 토큰 추가
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("댓글 좋아요 성공", data);
 
-    const likeIndex = commentObj.likedBy.indexOf(loggedInUser);
+        // 좋아요 상태 토글
+        if (data.likedByMe) {
+          // 사용자가 좋아요를 눌렀으면
+          commentObj.likedBy.push(loggedInUser);
+          button.classList.add("liked", "text-red-500");
+          button.classList.remove("text-gray-600");
+        } else {
+          // 사용자가 좋아요를 취소했으면
+          const likeIndex = commentObj.likedBy.indexOf(loggedInUser);
+          if (likeIndex > -1) {
+            commentObj.likedBy.splice(likeIndex, 1);
+          }
+          button.classList.remove("liked", "text-red-500");
+          button.classList.add("text-gray-600");
+        }
 
-    if (likeIndex > -1) {
-      // 사용자가 이미 좋아요를 눌렀으면 취소
-      commentObj.likedBy.splice(likeIndex, 1);
-      button.classList.remove("liked", "text-red-500");
-      button.classList.add("text-gray-600"); // 좋아요 취소 시 회색으로
-    } else {
-      // 사용자가 좋아요를 누르지 않았으면 추가
-      commentObj.likedBy.push(loggedInUser);
-      button.classList.add("liked", "text-red-500");
-      button.classList.remove("text-gray-600"); // 좋아요 시 빨간색으로
-    }
-    button.querySelector(
-      ".comment-like-count"
-    ).textContent = `${commentObj.likedBy.length}개`;
-    savePosts(); // 댓글 좋아요 변경 후 로컬 스토리지에 저장
+        button.querySelector(
+          ".comment-like-count"
+        ).textContent = `${data.likeCount}개`; // 서버에서 받은 좋아요 개수로 업데이트
+
+        savePosts(); // 댓글 좋아요 변경 후 로컬 스토리지에 저장
+      })
+      .catch((error) => {
+        console.error("댓글 좋아요 실패", error);
+        alert("댓글 좋아요에 실패했습니다.");
+      });
   }
 };
 
@@ -615,17 +639,37 @@ registerPostButton.addEventListener("click", () => {
     return;
   }
 
-  if (postImageFile) {
-    const reader = new FileReader();
-    reader.onloadend = function () {
-      // 파일을 Base64 문자열로 읽고 createAndSavePost 호출
-      createAndSavePost(postText, reader.result, postTags);
-    };
-    reader.readAsDataURL(postImageFile); // 파일 읽기 시작
-  } else {
-    // 이미지가 없으면 빈 문자열로 createAndSavePost 호출
-    createAndSavePost(postText, "", postTags);
-  }
+  const postData = {
+    content: postText,
+    tags: postTags.split(",").map((tag) => tag.trim()), // 태그 처리
+    // 이미지 URL 처리, Base64로 변환된 이미지일 경우 보내기
+    imageUrl: postImageFile ? reader.result : null,
+  };
+
+  // API로 게시글 생성 요청
+  fetch("http://34.44.150.212:8080/api/posts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("authToken")}`, // 로그인 토큰 추가 (필요 시)
+    },
+    body: JSON.stringify(postData),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("게시글 생성 성공", data);
+      allPosts.unshift(data); // 새로운 게시글 데이터 추가
+      savePosts();
+      renderAllPosts();
+      postModal.classList.add("hidden");
+      postImageInput.value = "";
+      postTextInput.value = "";
+      postTagsInput.value = "";
+    })
+    .catch((error) => {
+      console.error("게시글 생성 실패", error);
+      alert("게시글 생성에 실패했습니다.");
+    });
 });
 
 // 댓글 등록 버튼 클릭 이벤트: 댓글 모달 내에서 댓글을 등록합니다.
@@ -639,44 +683,35 @@ modalCommentSubmitButton.addEventListener("click", () => {
   const commentText = modalCommentInput.value.trim();
 
   if (commentText && currentViewingPostCard) {
-    const now = new Date();
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    };
-    const currentTimeFormatted = now.toLocaleString("ko-KR", options);
-
-    const newComment = {
-      id: "comment-" + Date.now(), // 고유 ID 생성
-      username: loggedInUser || "익명 사용자", // 로그인한 사용자 이름 사용
-      text: commentText,
-      time: currentTimeFormatted,
-      likedBy: [], // 새 댓글의 likedBy 배열 초기화
-      replies: [], // 답글 배열 초기화
+    const postId = currentViewingPostCard.id;
+    const commentData = {
+      content: commentText,
     };
 
-    // '아직 댓글이 없습니다' 메시지가 있다면 제거
-    const noCommentMessage = modalCommentList.querySelector("p.text-gray-500");
-    if (
-      noCommentMessage &&
-      noCommentMessage.textContent ===
-        "아직 댓글이 없습니다. 첫 댓글을 남겨보세요!"
-    ) {
-      modalCommentList.removeChild(noCommentMessage);
-    }
-
-    // 현재 게시글 데이터 객체에 댓글 추가
-    currentViewingPostCard.comments.push(newComment);
-    savePosts(); // 댓글 추가 후 로컬 스토리지에 저장
-
-    // 댓글 목록에 새 댓글 추가 (렌더링 함수 사용)
-    window.renderComments(currentViewingPostCard.comments, modalCommentList);
-
-    modalCommentInput.value = ""; // 입력 필드 초기화
-    modalCommentList.scrollTop = modalCommentList.scrollHeight; // 스크롤을 맨 아래로
+    // API로 댓글 생성 요청
+    fetch(`http://34.44.150.212:8080/api/posts/${postId}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`, // 로그인 토큰 추가 (필요 시)
+      },
+      body: JSON.stringify(commentData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("댓글 생성 성공", data);
+        currentViewingPostCard.comments.push(data); // 댓글 추가
+        savePosts(); // 로컬 저장소에 저장
+        window.renderComments(
+          currentViewingPostCard.comments,
+          modalCommentList
+        ); // 댓글 렌더링
+        modalCommentInput.value = ""; // 입력 필드 초기화
+        modalCommentList.scrollTop = modalCommentList.scrollHeight; // 스크롤 아래로 이동
+      })
+      .catch((error) => {
+        console.error("댓글 생성 실패", error);
+        alert("댓글 생성에 실패했습니다.");
+      });
   }
 });
