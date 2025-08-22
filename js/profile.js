@@ -71,7 +71,6 @@ const profileImage = document.getElementById("profileImage");
 const profileImageWrapper = document.querySelector(".profile-image-wrapper");
 const imageInput = document.getElementById("imageInput");
 const displayNameElement = document.getElementById("displayName");
-const bioElement = document.getElementById("bio");
 const phoneNumberElement = document.getElementById("phoneNumber");
 const editProfileBtn = document.getElementById("editProfileBtn");
 const userPostsGrid = document.getElementById("userPostsGrid");
@@ -80,7 +79,6 @@ const userPostsGrid = document.getElementById("userPostsGrid");
 const editModal = document.getElementById("editModal");
 const nameInput = document.getElementById("nameInput");
 const phoneInput = document.getElementById("phoneInput");
-const bioInput = document.getElementById("bioInput");
 const saveBtn = document.getElementById("saveBtn");
 const closeEditModal = document.getElementById("closeEditModal");
 
@@ -165,6 +163,15 @@ function escapeHtml(str) {
     .replaceAll(">", "&gt;");
 }
 
+// ✅ 토스트 (작고 중앙 위로 표시)
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast show";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
 // =====================[ 프로필 API ]=====================
 async function fetchMyProfile() {
   try {
@@ -241,7 +248,6 @@ function filterMyPosts(all, meUsername, meDisplayName) {
 // =====================[ 프로필 헤더 ]=====================
 function paintProfileHeader(displayName) {
   displayNameElement.textContent = displayName || "익명";
-  bioElement.textContent = "인사말을 작성해주세요.";
   phoneNumberElement.textContent = "";
   if (profileImage) profileImage.src = getRandomProfileUrl();
 
@@ -251,7 +257,7 @@ function paintProfileHeader(displayName) {
   if (profileLogoutButton) profileLogoutButton.style.display = "list-item";
 }
 
-// =====================[ 메인페이지와 동일한 카드 UI/기능 ]=====================
+// =====================[ 카드 UI/기능 ]=====================
 function createPostCardElement(uiPost) {
   const card = document.createElement("div");
   card.classList.add("post-card");
@@ -291,7 +297,6 @@ function createPostCardElement(uiPost) {
                 title="삭제" aria-label="삭제">×</button>
       </div>
 
-      <!-- ✅ 버튼 영역: 줄바꿈 방지/가로 정렬 -->
       <div class="post-actions flex items-center mt-4 gap-4">
         <button class="like-btn inline-flex items-center gap-1 whitespace-nowrap text-gray-600 hover:text-red-500 transition-colors duration-200 ${
           uiPost.likedByMe ? "liked text-red-500" : ""
@@ -310,28 +315,27 @@ function createPostCardElement(uiPost) {
     </div>
   `;
 
-  // ✅ 카드 어디를 눌러도 댓글 모달(단, 버튼 클릭은 제외)
+  // 카드 클릭 → 댓글 모달 (버튼 클릭은 제외)
   card.addEventListener("click", (e) => {
-    // 버튼/아이콘 클릭이면 무시
     if (e.target.closest("button")) return;
     openComments(uiPost.id);
   });
 
-  // ✅ 좋아요
+  // 좋아요
   const likeBtn = card.querySelector('[data-action="like"]');
   likeBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // 카드 클릭 전파 차단
+    e.stopPropagation();
     toggleLike(uiPost.id, card);
   });
 
-  // ✅ 댓글 버튼
+  // 댓글 버튼
   const cmtBtn = card.querySelector('[data-action="comments"]');
   cmtBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     openComments(uiPost.id);
   });
 
-  // ✅ 삭제 버튼
+  // 삭제 버튼
   const delBtn = card.querySelector(".post-card-delete-btn");
   delBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
@@ -351,7 +355,7 @@ function createPostCardElement(uiPost) {
       if (res.status === 204 || res.status === 200 || res.status === 404) {
         myPosts = myPosts.filter((x) => String(x.id) !== String(uiPost.id));
         renderMyPosts();
-        if (res.status !== 404) showCustomAlert("게시글이 삭제되었습니다.");
+        if (res.status !== 404) showToast("게시글이 삭제되었습니다 ✅");
         return;
       }
 
@@ -360,7 +364,7 @@ function createPostCardElement(uiPost) {
         try {
           msg = (await res.text()) || msg;
         } catch {}
-        showCustomAlert(msg);
+        showToast(msg);
         return;
       }
 
@@ -373,7 +377,7 @@ function createPostCardElement(uiPost) {
       );
     } catch (err) {
       console.error(err);
-      showCustomAlert("삭제 중 오류가 발생했습니다.");
+      showToast("삭제 중 오류가 발생했습니다 ❌");
     } finally {
       deletingIds.delete(uiPost.id);
       delBtn.disabled = false;
@@ -390,11 +394,10 @@ function renderMyPosts() {
       '<p class="text-gray-500 text-center col-span-full">아직 작성한 게시글이 없습니다.</p>';
     return;
   }
-  // 최신순 보이려면 prepend, 이미 myPosts가 최신순이 아니라면 정렬 추가 가능
   myPosts.forEach((p) => userPostsGrid.prepend(createPostCardElement(p)));
 }
 
-// =====================[ 좋아요 처리 (메인과 동일) ]=====================
+// =====================[ 좋아요 처리 ]=====================
 async function toggleLike(postId, cardEl) {
   const payload = parseJwtPayload();
   if (!payload || isTokenExpired(payload)) return dropToLogin();
@@ -408,7 +411,7 @@ async function toggleLike(postId, cardEl) {
     await refreshSinglePost(postId, cardEl);
   } catch (e) {
     console.error("좋아요 실패:", e);
-    showCustomAlert("좋아요 처리 중 오류가 발생했습니다.");
+    showToast("좋아요 처리 중 오류가 발생했습니다 ❌");
   }
 }
 async function refreshSinglePost(postId, cardEl) {
@@ -417,7 +420,6 @@ async function refreshSinglePost(postId, cardEl) {
     const p = await res.json();
     const ui = mapPostToUI(p);
 
-    // 카드 내부 반영
     const likeBtn = cardEl.querySelector('[data-action="like"]');
     likeBtn.classList.toggle("liked", ui.likedByMe);
     likeBtn.querySelector("span:first-child").textContent = ui.likedByMe
@@ -425,7 +427,6 @@ async function refreshSinglePost(postId, cardEl) {
       : "❤️";
     likeBtn.querySelector(".like-count").textContent = ui.likeCount;
 
-    // 상태 목록에도 반영
     const idx = myPosts.findIndex((x) => String(x.id) === String(postId));
     if (idx >= 0) myPosts[idx] = ui;
   } catch (e) {
@@ -433,7 +434,13 @@ async function refreshSinglePost(postId, cardEl) {
   }
 }
 
-// =====================[ 댓글 모달 (메인과 동일) ]=====================
+// =====================[ 댓글 모달 ]=====================
+function getCurrentUsername() {
+  const p = parseJwtPayload();
+  if (!p) return null;
+  return p.username || p.user_name || p.preferred_username || p.sub || null;
+}
+
 async function openComments(postId) {
   try {
     const postRes = await authFetch(`${API_BASE}/api/posts/${postId}`);
@@ -446,7 +453,8 @@ async function openComments(postId) {
     const ui = currentViewingPost;
 
     if (modalPostTitle)
-      modalPostTitle.textContent = ui.text.split("\n")[0] || "제목 없음";
+      modalPostTitle.textContent = (ui.text || "").split("\n")[0] || "게시글";
+
     if (ui.imageUrl) {
       modalPostImage.src = ui.imageUrl;
       modalPostImage.classList.remove("hidden");
@@ -454,6 +462,7 @@ async function openComments(postId) {
       modalPostImage.classList.add("hidden");
       modalPostImage.src = "";
     }
+
     modalPostText.textContent = ui.text;
     modalPostTags.innerHTML = (ui.tags || [])
       .map(
@@ -470,52 +479,110 @@ async function openComments(postId) {
     if (commentModal) commentModal.style.display = "flex";
   } catch (e) {
     console.error("댓글 열기 실패:", e);
-    showCustomAlert("댓글을 불러오는 데 실패했습니다.");
+    showToast("댓글을 불러오는 데 실패했습니다 ❌");
   }
 }
+
 function renderComments(comments, container) {
   container.innerHTML = "";
   if (!Array.isArray(comments) || comments.length === 0) {
-    container.innerHTML = `<p class="text-gray-500 text-center py-4">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>`;
+    container.innerHTML = `<p class="text-gray-500 text-center py-6">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>`;
     return;
   }
+
+  const pick = (...vals) =>
+    vals.find((v) => typeof v === "string" && v.trim().length > 0) ?? "익명";
+  const me = (getCurrentUsername() || "").toString().toLowerCase();
+
   comments.forEach((c) => {
-    const item = document.createElement("div");
-    item.className = "comment-item";
-    item.dataset.id = c.id;
+    const row = document.createElement("div");
+    row.className = "py-4";
+    row.dataset.id = c.id;
+
+    const authorName = pick(
+      c.authorName,
+      c.author?.name,
+      c.author?.username,
+      c.username
+    );
+
+    const commentAuthorId = pick(c.authorId, c.author?.username, c.username);
+    const isMine =
+      me && commentAuthorId && me === commentAuthorId.toString().toLowerCase();
+
+    const rawTime = String(c.createdAt ?? c.time ?? "");
+    const displayDate =
+      c.createdOn ||
+      (rawTime.includes("T")
+        ? rawTime.split("T")[0]
+        : rawTime.substring(0, 10));
 
     const likeCount =
       c.likeCount ?? (Array.isArray(c.likedBy) ? c.likedBy.length : 0);
     const likedByMe = c.likedByMe ?? false;
 
-    item.innerHTML = `
-      <div class="comment-content-wrapper">
-        <div class="comment-text-line">
-          <span class="comment-username">${escapeHtml(
-            c.author?.username ?? c.username ?? "익명"
-          )}</span>
-          <span class="comment-body">${escapeHtml(
+    row.innerHTML = `
+      <div class="flex flex-col gap-1">
+        <div class="text-sm font-semibold text-gray-800">${escapeHtml(
+          authorName
+        )}
+          <span class="ml-2 font-normal text-gray-800">${escapeHtml(
             c.content ?? c.text ?? ""
           )}</span>
         </div>
-        <div class="comment-time">${escapeHtml(
-          c.createdAt ?? c.time ?? ""
-        )}</div>
-      </div>
-      <div class="comment-actions">
-        <button class="like-button ${
-          likedByMe ? "text-red-500" : "text-gray-500"
-        } hover:text-red-500 transition-colors duration-200" data-action="comment-like">
-          <span class="comment-like-count">${likeCount}개</span> 좋아요
-        </button>
+        <div class="text-xs text-gray-400 flex items-center gap-3">
+          <span>${escapeHtml(displayDate)}</span>
+          ${
+            isMine
+              ? `<button class="comment-delete hover:text-red-500" data-action="comment-delete">삭제</button>`
+              : ""
+          }
+        </div>
+        <div class="text-xs text-gray-400 flex items-center gap-2">
+          <button class="comment-like inline-flex items-center ${
+            likedByMe ? "text-red-500" : "text-gray-400"
+          } hover:text-red-500" data-action="comment-like">
+            <span class="comment-like-count mr-1">${likeCount}개</span> 좋아요
+          </button>
+        </div>
       </div>
     `;
-    item
+
+    row
       .querySelector('[data-action="comment-like"]')
-      .addEventListener("click", () => toggleCommentLike(c.id, item));
-    container.appendChild(item);
+      .addEventListener("click", () => toggleCommentLike(c.id, row));
+
+    const delBtn = row.querySelector('[data-action="comment-delete"]');
+    if (delBtn) {
+      delBtn.addEventListener("click", async () => {
+        if (!confirm("이 댓글을 삭제하시겠어요?")) return;
+        await deleteComment(c.id);
+        await refreshCommentsOfCurrentPost();
+      });
+    }
+
+    container.appendChild(row);
   });
 }
+
+async function deleteComment(commentId) {
+  try {
+    const res = await authFetch(`${API_BASE}/api/comments/${commentId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      if (res.status === 403) {
+        showToast("본인 댓글만 삭제할 수 있습니다 ❌");
+      } else {
+        throw new Error(`삭제 실패(${res.status})`);
+      }
+    }
+  } catch (e) {
+    console.error("댓글 삭제 실패:", e);
+    showToast("댓글 삭제 중 오류가 발생했습니다 ❌");
+  }
+}
+
 async function toggleCommentLike(commentId, itemEl) {
   try {
     const btn = itemEl.querySelector('[data-action="comment-like"]');
@@ -525,9 +592,10 @@ async function toggleCommentLike(commentId, itemEl) {
     await refreshCommentsOfCurrentPost();
   } catch (e) {
     console.error("댓글 좋아요 실패:", e);
-    showCustomAlert("댓글 좋아요에 실패했습니다.");
+    showToast("댓글 좋아요에 실패했습니다 ❌");
   }
 }
+
 async function refreshCommentsOfCurrentPost() {
   if (!currentViewingPost?.id) return;
   try {
@@ -540,13 +608,22 @@ async function refreshCommentsOfCurrentPost() {
     console.error("댓글 재조회 실패:", e);
   }
 }
+
+// ✅ 엔터로 댓글 등록 (Shift+Enter는 줄바꿈)
+modalCommentInput?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    modalCommentSubmitButton?.click();
+  }
+});
+
 // 댓글 작성
 modalCommentSubmitButton?.addEventListener("click", async () => {
   const payload = parseJwtPayload();
   if (!payload || isTokenExpired(payload)) return dropToLogin();
 
   const text = (modalCommentInput.value || "").trim();
-  if (!text) return showCustomAlert("댓글 내용을 입력해주세요.");
+  if (!text) return showToast("댓글 내용을 입력해주세요 ❗");
   if (!currentViewingPost?.id) return;
 
   try {
@@ -561,7 +638,7 @@ modalCommentSubmitButton?.addEventListener("click", async () => {
     modalCommentList.scrollTop = modalCommentList.scrollHeight;
   } catch (e) {
     console.error(e);
-    showCustomAlert("댓글 생성에 실패했습니다.");
+    showToast("댓글 생성에 실패했습니다 ❌");
   }
 });
 
@@ -571,7 +648,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!payload || isTokenExpired(payload)) {
     // 미로그인 상태
     displayNameElement.textContent = "로그인 필요";
-    bioElement.textContent = "프로필을 보려면 로그인하세요.";
     if (profileImage) profileImage.src = getRandomProfileUrl();
     if (editProfileBtn) editProfileBtn.style.display = "none";
     if (profileLoginButton) profileLoginButton.style.display = "list-item";
@@ -610,7 +686,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 5) 헤더 반영
     displayNameElement.textContent = displayName || "익명";
-    bioElement.textContent = "인사말을 작성해주세요.";
     phoneNumberElement.textContent = displayPhone;
     if (profileImage) profileImage.src = getRandomProfileUrl();
     if (editProfileBtn) editProfileBtn.style.display = "block";
@@ -618,7 +693,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (profileSignupButton) profileSignupButton.style.display = "none";
     if (profileLogoutButton) profileLogoutButton.style.display = "list-item";
 
-    // 6) 내 글만 필터 후 렌더 (메인 카드와 동일 UI)
+    // 6) 내 글만 필터 후 렌더
     myPosts = filterMyPosts(all, meUsername, displayName);
     renderMyPosts();
   } catch (e) {
@@ -659,24 +734,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (alertDialog?.style.display === "flex") closeAlertModal?.click();
   });
 
-  // 프로필 편집(표시용)
+  // 프로필 편집 열기
   editProfileBtn?.addEventListener("click", () => {
     if (!editModal) return;
     if (nameInput)
       nameInput.value = (displayNameElement.textContent || "").trim();
     if (phoneInput)
       phoneInput.value = (phoneNumberElement.textContent || "").trim();
-    if (bioInput) bioInput.value = (bioElement.textContent || "").trim();
     editModal.style.display = "flex";
+    // 모달이 열렸을 때 입력창에 포커스
+    setTimeout(() => nameInput?.focus(), 0);
   });
 
+  // ✅ 저장 버튼 (성공/실패 토스트 + 모달 닫기)
   saveBtn?.addEventListener("click", async () => {
     const newName = (nameInput?.value || "").trim();
     const newPhone = (phoneInput?.value || "").trim();
-    const newBio = (bioInput?.value || "").trim();
 
     if (!newName) {
-      showCustomAlert("이름은 비워둘 수 없습니다.");
+      showToast("이름은 비워둘 수 없습니다 ❌");
       return;
     }
 
@@ -689,7 +765,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       // 헤더 UI 갱신
       displayNameElement.textContent = updatedProfile.name || newName;
       phoneNumberElement.textContent = updatedProfile.phone ?? newPhone;
-      bioElement.textContent = newBio || "인사말을 작성해주세요."; // 비우면 기본 문구
 
       // 내 게시글 카드의 표시명도 동기화
       myPosts = myPosts.map((p) => ({
@@ -706,10 +781,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderMyPosts();
 
       editModal.style.display = "none";
-      showCustomAlert("프로필이 저장되었습니다.");
+      showToast("프로필이 수정되었습니다 ✅");
     } catch (e) {
       console.error(e);
-      showCustomAlert("프로필 저장에 실패했습니다. 서버 API를 확인해주세요.");
+      showToast("프로필 저장에 실패했습니다 ❌");
+    }
+  });
+
+  // ✅ 모달 안에서 Enter키로 저장 (IME 조합 제외)
+  editModal?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.isComposing) {
+      e.preventDefault();
+      saveBtn?.click();
     }
   });
 });

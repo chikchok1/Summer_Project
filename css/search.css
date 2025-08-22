@@ -1,3 +1,4 @@
+/* =============== 기본/툴바 =============== */
 body {
   font-family: "Inter", "Noto Sans KR", sans-serif;
   background-color: #f4f7f6;
@@ -18,6 +19,8 @@ body {
   color: #3b82f6;
   text-decoration: none;
 }
+
+/* =============== 검색 컨테이너/카드 =============== */
 .search-container {
   max-width: 1000px;
   margin: 40px auto;
@@ -26,6 +29,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
+
 .post-card {
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -36,7 +40,7 @@ body {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   height: 280px;
   overflow: hidden;
-  cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+  cursor: pointer;
 }
 .post-card:hover {
   transform: translateY(-5px);
@@ -78,16 +82,12 @@ body {
   margin-top: auto;
 }
 
-/* --- MODAL STYLES START --- */
+/* =============== 모달 공통 =============== */
 .modal {
-  display: none;
+  display: none; /* JS에서 display:flex 로 열림 */
   position: fixed;
   z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
@@ -100,20 +100,28 @@ body {
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
+
+/* =============== 댓글 모달(메인 동일 톤) =============== */
 #commentModal .modal-content {
   max-width: 1000px;
   width: 90%;
+  height: calc(100vh - 64px); /* 뷰포트 기준 고정 높이 */
+  max-height: calc(100vh - 64px);
+  overflow: hidden; /* 내부 컬럼/리스트만 스크롤 */
   display: flex;
-  min-height: 600px;
   text-align: left;
   position: relative;
 }
+
+/* 좌측 게시글 컬럼(긴 글 대비 스크롤 허용) */
 #commentModal .modal-post-display {
   flex: 2;
   border-right: 1px solid #e0e0e0;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .modal-post-image {
   width: 100%;
@@ -123,41 +131,69 @@ body {
   display: block;
   background-color: #e0e0e0;
 }
+#commentModal .modal-post-content-wrapper {
+  padding: 24px;
+}
+
+/* 우측 댓글 컬럼 */
 #commentModal .modal-comment-area {
   flex: 1;
   padding-left: 24px;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden; /* 리스트만 스크롤되게 */
 }
+
+/* 댓글 리스트(스크롤 주체) */
 #commentModal .comment-list {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto; /* ← 스크롤바 여기서 생김 */
   margin-bottom: 16px;
+  padding: 0 24px;
+  -webkit-overflow-scrolling: touch;
 }
-#commentModal .modal-post-content-wrapper {
-  padding: 24px;
+#commentModal .comment-list > div {
+  padding: 16px 0;
+  border-bottom: 1px solid #e5e7eb; /* 밑줄 1개 */
+}
+#commentModal .comment-list > div:last-child {
+  border-bottom: 0;
+}
+
+/* 입력줄(입력창/버튼 높이 맞춤) */
+#commentModal .modal-comment-area > .flex {
+  gap: 8px;
+  align-items: stretch; /* 자식들 동일 높이 */
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
 }
 #modalCommentInput {
   flex: 1;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 10px 15px;
-  box-sizing: border-box;
   font-size: 0.95rem;
+  height: 44px; /* 기준 높이 */
+  box-sizing: border-box;
 }
 #modalCommentSubmitButton {
   background-color: #3b82f6;
   color: white;
-  padding: 10px 20px;
+  padding: 0 16px; /* 좌우만 */
   border-radius: 8px;
   transition: background-color 0.2s;
-  margin-left: 10px;
   border: none;
   cursor: pointer;
+  height: 44px; /* 입력창과 동일 */
 }
 #modalCommentSubmitButton:hover {
   background-color: #2a6bbd;
 }
+
+/* 닫기(X) 버튼 */
 #closeCommentModalButton {
   position: absolute;
   top: 15px;
@@ -171,20 +207,7 @@ body {
   cursor: pointer;
 }
 
-/* Comment & Reply Styles */
-.comment-item,
-.reply-item {
-  background-color: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-}
-.reply-item {
-  margin-left: 20px;
-  background-color: #fdfdfd;
-}
+/* =============== 댓글 텍스트/액션 =============== */
 .comment-content-wrapper {
   display: flex;
   flex-direction: column;
@@ -210,6 +233,8 @@ body {
   color: #9ca3af;
   margin-top: 4px;
 }
+
+/* 라인형 버튼(텍스트 느낌) */
 .comment-actions {
   display: flex;
   align-items: center;
@@ -219,7 +244,9 @@ body {
   margin-left: 0;
 }
 .comment-actions button {
-  all: unset;
+  background: none;
+  border: 0;
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -235,6 +262,17 @@ body {
   margin-right: 4px;
 }
 
+/* (카드형 댓글 스타일은 모달 내부에서 비활성화) */
+#commentModal .comment-item,
+#commentModal .reply-item {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* 답글 영역(있을 때) */
 .reply-input-area {
   background-color: #fff;
   padding: 8px;
@@ -253,51 +291,52 @@ body {
   padding: 6px 10px;
 }
 .reply-input-area button {
-  all: unset;
-  cursor: pointer;
-  white-space: nowrap;
-  padding: 6px 12px;
-  font-size: 0.875rem;
   background-color: #e5e7eb;
   color: #374151;
   border-radius: 0.5rem;
-  transition: background-color 0.2s ease-in-out;
+  padding: 6px 12px;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 .reply-input-area button:hover {
   background-color: #d1d5db;
 }
 
 .view-replies-toggle {
-  all: unset;
-  cursor: pointer;
   color: #374151;
   font-size: 0.75rem;
   font-weight: 500;
   margin-top: 4px;
   display: block;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
 }
 .view-replies-toggle:hover {
   text-decoration: underline;
   color: #3b82f6;
 }
+
 .replies-list {
-  margin-left: 0px;
-  padding-left: 0px;
+  margin-left: 0;
+  padding-left: 0;
 }
 .hidden {
   display: none;
 }
-/* 사용자 제공 CSS (memberInfo 관련) */
+
+/* =============== memberInfo =============== */
 .memberInfo {
   display: flex;
-  flex-direction: row; /* 수평 정렬 */
-  justify-content: center; /* 가운데 정렬 */
-  gap: 10px; /* 버튼 간 간격 */
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
   list-style: none;
   padding: 0;
   margin: 0;
 }
-
 .memberInfo li a {
   display: flex;
   flex-direction: column;
@@ -307,12 +346,12 @@ body {
   height: 80px;
   text-decoration: none;
   color: black;
-  font-size: 0.875rem; /* text-sm에 해당 */
-  font-weight: 500; /* medium */
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 .memberInfo li a img {
   display: block;
-  width: 36px; /* 이미지 크기 */
+  width: 36px;
   height: 36px;
-  margin-bottom: 4px; /* 이미지와 텍스트 사이 간격 */
+  margin-bottom: 4px;
 }

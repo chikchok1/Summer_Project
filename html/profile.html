@@ -6,10 +6,13 @@
     <!-- Tailwind CSS CDN 로드 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts - Inter 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&family=Noto+Sans+KR:wght@100..900&family=Quicksand:wght@300..700&display=swap"
       rel="stylesheet"
     />
+
     <link href="/Summer_Project/css/profile.css" rel="stylesheet" />
   </head>
   <body>
@@ -72,9 +75,7 @@
       <div
         id="userPostsGrid"
         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8"
-      >
-        <!-- User's posts will be dynamically loaded here -->
-      </div>
+      ></div>
     </div>
 
     <!-- 프로필 편집 모달 -->
@@ -83,7 +84,6 @@
         <h3>프로필 편집</h3>
         <input type="text" id="nameInput" placeholder="이름" />
         <input type="text" id="phoneInput" placeholder="전화번호" />
-        <textarea id="bioInput" placeholder="소개글"></textarea>
         <button id="saveBtn">저장</button>
         <button id="closeEditModal">닫기</button>
       </div>
@@ -95,12 +95,9 @@
         <!-- 게시글 내용 표시 영역 -->
         <div class="modal-post-display">
           <div class="modal-post-content-wrapper p-6">
-            <h2
-              id="modalPostTitle"
-              class="text-2xl font-bold text-gray-800 mb-4"
-            >
-              게시글 제목
-            </h2>
+            <!-- ✅ 메인페이지처럼 상단에 '게시글' 라벨 -->
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">게시글</h2>
+
             <img
               id="modalPostImage"
               src=""
@@ -124,25 +121,29 @@
             </div>
           </div>
         </div>
+
         <!-- 댓글 작성 및 목록 영역 -->
         <div class="modal-comment-area">
           <h2 class="text-2xl font-bold text-gray-800 mb-4">댓글</h2>
           <div id="modalCommentList" class="comment-list space-y-3"></div>
-          <div class="flex mt-auto pt-4 border-t border-gray-200">
+
+          <div class="comment-input-area">
             <input
               type="text"
               id="modalCommentInput"
               placeholder="댓글을 작성하세요..."
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="댓글 입력"
             />
             <button
               id="modalCommentSubmitButton"
-              class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+              type="button"
+              aria-label="댓글 등록"
             >
               등록
             </button>
           </div>
         </div>
+
         <button id="closeCommentModalButton" aria-label="모달 닫기">
           &times;
         </button>
@@ -180,6 +181,7 @@
         </button>
       </div>
     </div>
+
     <script src="/Summer_Project/js/profile.js"></script>
   </body>
 </html>
